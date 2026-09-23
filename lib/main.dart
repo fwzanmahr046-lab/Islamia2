@@ -2,11 +2,73 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'dart:async';
 import 'package:intl/intl.dart' hide TextDirection;
+import 'package:adhan/adhan.dart' as adhan_lib;
+import 'package:audioplayers/audioplayers.dart';
 
 // ==========================================
-// 1. DATA MODELS
+// 1. ARABIC TRANSLATION & LOCALE UTILS
+// ==========================================
+
+class ArabicTranslationService {
+  static const Map<String, String> _translations = {
+    'baghdad': 'بغداد',
+    'iraq': 'العراق',
+    'mecca': 'مكة المكرمة',
+    'makkah': 'مكة المكرمة',
+    'saudi arabia': 'المملكة العربية السعودية',
+    'medina': 'المدينة المنورة',
+    'cairo': 'القاهرة',
+    'egypt': 'مصر',
+    'riyadh': 'الرياض',
+    'jeddah': 'جدة',
+    'dubai': 'دبي',
+    'uae': 'الإمارات العربية المتحدة',
+    'united arab emirates': 'الإمارات العربية المتحدة',
+    'damascus': 'دمشق',
+    'syria': 'سوريا',
+    'amman': 'عمان',
+    'jordan': 'الأردن',
+    'beirut': 'بيروت',
+    'lebanon': 'لبنان',
+    'kuwait': 'الكويت',
+    'doha': 'الدوحة',
+    'qatar': 'قطر',
+    'muscat': 'مسقط',
+    'oman': 'عُمان',
+    'manama': 'المنامة',
+    'bahrain': 'البحرين',
+    'rabat': 'الرباط',
+    'morocco': 'المغرب',
+    'algiers': 'الجزائر',
+    'tunis': 'تونس',
+    'tripoli': 'طرابلس',
+    'libya': 'ليبيا',
+    'khartoum': 'الخرطوم',
+    'sudan': 'السودان',
+    'istanbul': 'إسطنبول',
+    'turkey': 'تركيا',
+  };
+
+  static String toArabic(String text) {
+    if (text.isEmpty) return text;
+    final clean = text.trim().toLowerCase();
+    return _translations[clean] ?? text;
+  }
+
+  static String formatArabicDate(DateTime date) {
+    final months = [
+      'يناير / كانون الثاني', 'فبراير / شباط', 'مارس / آذار',
+      'أبريل / نيسان', 'مايو / أيار', 'يونيو / حزيران',
+      'يوليو / تموز', 'أغسطس / آب', 'سبتمبر / أيلول',
+      'أكتوبر / تشرين الأول', 'نوفمبر / تشرين الثاني', 'ديسمبر / كانون الأول'
+    ];
+    return '${date.day} ${months[date.month - 1]} ${date.year} م';
+  }
+}
+
+// ==========================================
+// 2. DATA MODELS
 // ==========================================
 
 class PrayerTimesData {
@@ -28,9 +90,20 @@ class PrayerTimesData {
     required this.date,
   });
 
+  factory PrayerTimesData.fromAdhanLib(adhan_lib.PrayerTimes times) {
+    return PrayerTimesData(
+      fajr: _formatTime(times.fajr),
+      sunrise: _formatTime(times.sunrise),
+      dhuhr: _formatTime(times.dhuhr),
+      asr: _formatTime(times.asr),
+      maghrib: _formatTime(times.maghrib),
+      isha: _formatTime(times.isha),
+      date: ArabicTranslationService.formatArabicDate(DateTime.now()),
+    );
+  }
+
   factory PrayerTimesData.fromJson(Map<String, dynamic> json) {
     final timings = json['data']['timings'];
-    final date = json['data']['date']['readable'];
     return PrayerTimesData(
       fajr: _formatTo12Hour(timings['Fajr'] ?? ''),
       sunrise: _formatTo12Hour(timings['Sunrise'] ?? ''),
@@ -38,20 +111,16 @@ class PrayerTimesData {
       asr: _formatTo12Hour(timings['Asr'] ?? ''),
       maghrib: _formatTo12Hour(timings['Maghrib'] ?? ''),
       isha: _formatTo12Hour(timings['Isha'] ?? ''),
-      date: date ?? '',
+      date: ArabicTranslationService.formatArabicDate(DateTime.now()),
     );
   }
 
-  factory PrayerTimesData.mock() {
-    return PrayerTimesData(
-      fajr: "4:30 ص",
-      sunrise: "5:45 ص",
-      dhuhr: "12:15 م",
-      asr: "3:45 م",
-      maghrib: "6:30 م",
-      isha: "8:00 م",
-      date: DateFormat('dd MMM yyyy').format(DateTime.now()),
-    );
+  static String _formatTime(DateTime dt) {
+    final localDt = dt.toLocal();
+    final hour = localDt.hour % 12 == 0 ? 12 : localDt.hour % 12;
+    final min = localDt.minute.toString().padLeft(2, '0');
+    final period = localDt.hour >= 12 ? 'م' : 'ص';
+    return '$hour:$min $period';
   }
 
   static String _formatTo12Hour(String rawTime) {
@@ -100,45 +169,39 @@ class ThikrCategory {
 }
 
 // ==========================================
-// 2. API SERVICE
+// 3. AUDIO & SOUND SERVICE
 // ==========================================
 
-class IslamicApiService {
-  static const String _baseUrl = 'https://api.aladhan.com/v1/timingsByCity';
+class AudioService {
+  static final AudioPlayer _player = AudioPlayer();
 
-  Future<PrayerTimesData> fetchPrayerTimes(String city, String country, int method) async {
+  static Future<void> playClickSound() async {
     try {
-      final uri = Uri.parse('$_baseUrl?city=$city&country=$country&method=$method');
-      final response = await http.get(uri).timeout(const Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        return PrayerTimesData.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('فشل في جلب البيانات من السيرفر');
-      }
-    } catch (e) {
-      throw Exception('خطأ في الاتصال بالشبكة: $e');
-    }
+      SystemSound.play(SystemSoundType.click);
+    } catch (_) {}
   }
 }
 
 // ==========================================
-// 3. REPOSITORY STATE MANAGEMENT
+// 4. REPOSITORY STATE MANAGEMENT
 // ==========================================
 
 class AppRepository extends ChangeNotifier {
-  final IslamicApiService _apiService = IslamicApiService();
-
   PrayerTimesData? prayerTimes;
   bool isLoading = true;
   String errorMessage = '';
 
   String currentCity = 'Baghdad';
   String currentCountry = 'Iraq';
+
+  String get currentCityArabic => ArabicTranslationService.toArabic(currentCity);
+  String get currentCountryArabic => ArabicTranslationService.toArabic(currentCountry);
+
   int calculationMethod = 4;
 
-  int tasbeehCounter = 0;
+  final ValueNotifier<int> tasbeehCounterNotifier = ValueNotifier<int>(0);
   int selectedTasbeehIndex = 0;
+
   final List<String> tasbeehPhrases = [
     'سبحان الله',
     'الحمد لله',
@@ -154,16 +217,12 @@ class AppRepository extends ChangeNotifier {
       title: 'أذكار الصباح',
       icon: Icons.wb_sunny_rounded,
       athkar: [
-        ThikrData(text: 'أصبحنا وأصبح الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير.', targetCount: 1),
+        ThikrData(text: 'أصبحنا وأصبح الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له.', targetCount: 1),
         ThikrData(text: 'اللهم بك أصبحنا، وبك أمسينا، وبك نحيا، وبك نموت، وإليك النشور.', targetCount: 1),
         ThikrData(text: 'آية الكرسي: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', targetCount: 1),
         ThikrData(text: 'سورة الإخلاص والمعوذتين.', targetCount: 3),
-        ThikrData(text: 'أصبحنا على فطرة الإسلام وعلى كلمة الإخلاص وعلى دين نبينا محمد صلى الله عليه وسلم.', targetCount: 1),
         ThikrData(text: 'رضيت بالله رباً، وبالإسلام ديناً، وبمحمد صلى الله عليه وسلم نبياً.', targetCount: 3),
         ThikrData(text: 'حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم.', targetCount: 7),
-        ThikrData(text: 'بسم الله الذي لا يضر مع اسمه شيء في الأرض ولا في السماء وهو السميع العليم.', targetCount: 3),
-        ThikrData(text: 'سبحان الله وبحمده: عدد خلقه، ورضا نفسه، وزنة عرشه، ومداد كلماته.', targetCount: 3),
-        ThikrData(text: 'يا حي يا قيوم برحمتك أستغيث أصلح لي شأني كله ولا تكلني إلى نفسي طرفة عين.', targetCount: 1),
         ThikrData(text: 'سبحان الله وبحمده.', targetCount: 100),
       ],
     ),
@@ -176,7 +235,6 @@ class AppRepository extends ChangeNotifier {
         ThikrData(text: 'آية الكرسي: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', targetCount: 1),
         ThikrData(text: 'سورة الإخلاص والمعوذتين.', targetCount: 3),
         ThikrData(text: 'أعوذ بكلمات الله التامات من شر ما خلق.', targetCount: 3),
-        ThikrData(text: 'اللهم إني أسألك العفو والعافية في الدنيا والآخرة.', targetCount: 1),
         ThikrData(text: 'أستغفر الله وأتوب إليه.', targetCount: 100),
       ],
     ),
@@ -186,28 +244,7 @@ class AppRepository extends ChangeNotifier {
       athkar: [
         ThikrData(text: 'أستغفر الله، أستغفر الله، أستغفر الله.', targetCount: 1),
         ThikrData(text: 'اللهم أنت السلام ومنك السلام، تباركت يا ذا الجلال والإكرام.', targetCount: 1),
-        ThikrData(text: 'لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير.', targetCount: 1),
         ThikrData(text: 'سبحان الله (33)، الحمد لله (33)، الله أكبر (33).', targetCount: 99),
-        ThikrData(text: 'لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير (تمام المائة).', targetCount: 1),
-      ],
-    ),
-    ThikrCategory(
-      title: 'أذكار النوم والاستيقاظ',
-      icon: Icons.bedtime_rounded,
-      athkar: [
-        ThikrData(text: 'باسمك ربي وضعت جنبي، وبك أرفعه، فإن أمسكت نفسي فارحمها، وإن أرسلتها فاحفظها.', targetCount: 1),
-        ThikrData(text: 'اللهم قني عذابك يوم تبعث عبادك.', targetCount: 3),
-        ThikrData(text: 'الحمد لله الذي أحيانا بعد ما أماتنا وإليه النشور.', targetCount: 1),
-      ],
-    ),
-    ThikrCategory(
-      title: 'أدعية قرآنية ومأثورة',
-      icon: Icons.menu_book_rounded,
-      athkar: [
-        ThikrData(text: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ.', targetCount: 1),
-        ThikrData(text: 'رَبَّنَا لا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً إِنَّك أَنْتَ الْوَهَّابُ.', targetCount: 1),
-        ThikrData(text: 'رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي.', targetCount: 1),
-        ThikrData(text: 'اللهم إنك عفو كريم تحب العفو فاعفُ عني.', targetCount: 1),
       ],
     ),
   ];
@@ -222,37 +259,59 @@ class AppRepository extends ChangeNotifier {
     notifyListeners();
 
     try {
-      prayerTimes = await _apiService.fetchPrayerTimes(city, country, calculationMethod);
+      final uri = Uri.parse('https://api.aladhan.com/v1/timingsByCity?city=$city&country=$country&method=$calculationMethod');
+      final response = await http.get(uri).timeout(const Duration(seconds: 8));
+
+      if (response.statusCode == 200) {
+        prayerTimes = PrayerTimesData.fromJson(json.decode(response.body));
+      } else {
+        _fallbackToLocalAdhan();
+      }
       currentCity = city;
       currentCountry = country;
-    } catch (e) {
-      prayerTimes = PrayerTimesData.mock();
-      errorMessage = 'تعذر الاتصال بالشبكة، تم إدراج أوقات تقريبية.';
+    } catch (_) {
+      _fallbackToLocalAdhan();
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  void setCalculationMethod(int method) {
-    calculationMethod = method;
-    loadPrayerTimes(currentCity, currentCountry);
+  void _fallbackToLocalAdhan() {
+    final coordinates = adhan_lib.Coordinates(33.3152, 44.3661); // بغداد افتراضياً
+    final params = adhan_lib.CalculationMethod.muslim_world_league.getParameters();
+    final times = adhan_lib.PrayerTimes.today(coordinates, params);
+    prayerTimes = PrayerTimesData.fromAdhanLib(times);
   }
 
   void incrementTasbeeh() {
-    tasbeehCounter++;
-    notifyListeners();
+    tasbeehCounterNotifier.value++;
+    AudioService.playClickSound();
+    HapticFeedback.lightImpact();
   }
 
   void resetTasbeeh() {
-    tasbeehCounter = 0;
-    notifyListeners();
+    tasbeehCounterNotifier.value = 0;
+    HapticFeedback.mediumImpact();
   }
 
   void changeTasbeehPhrase(int index) {
     selectedTasbeehIndex = index;
-    tasbeehCounter = 0;
+    tasbeehCounterNotifier.value = 0;
     notifyListeners();
+  }
+
+  void incrementThikr(ThikrData thikr) {
+    if (thikr.currentCount < thikr.targetCount) {
+      thikr.currentCount++;
+      AudioService.playClickSound();
+      if (thikr.currentCount == thikr.targetCount) {
+        HapticFeedback.heavyImpact();
+      } else {
+        HapticFeedback.lightImpact();
+      }
+      notifyListeners();
+    }
   }
 
   void resetThikrCount(ThikrCategory category) {
@@ -261,19 +320,12 @@ class AppRepository extends ChangeNotifier {
     }
     notifyListeners();
   }
-
-  void incrementThikr(ThikrData thikr) {
-    if (thikr.currentCount < thikr.targetCount) {
-      thikr.currentCount++;
-      notifyListeners();
-    }
-  }
 }
 
 final AppRepository appRepository = AppRepository();
 
 // ==========================================
-// 4. MAIN ENTRY POINT
+// 5. MAIN ENTRY POINT
 // ==========================================
 
 void main() {
@@ -298,7 +350,7 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
     const bgLight = Color(0xFFF2F5F3);
 
     return MaterialApp(
-      title: 'صلاتي والأذكار',
+      title: 'نور الإيمان',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
@@ -333,7 +385,7 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
 }
 
 // ==========================================
-// 5. NAVIGATION & SCREENS
+// 6. NAVIGATION & SCREENS
 // ==========================================
 
 class MainNavigationScreen extends StatefulWidget {
@@ -354,7 +406,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
       body: IndexedStack(
         index: _currentIndex,
         children: _screens,
@@ -368,7 +419,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         },
         backgroundColor: Colors.white,
         elevation: 10,
-        indicatorColor: const Color(0xFFD4AF37).withAlpha(60),
+        indicatorColor: const Color(0xFFD4AF37).withOpacity(0.3),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.access_time_filled_rounded),
@@ -388,14 +439,13 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   }
 }
 
-class PrayerTimesScreen extends StatefulWidget {
+// ==========================================
+// 7. PRAYER TIMES SCREEN
+// ==========================================
+
+class PrayerTimesScreen extends StatelessWidget {
   const PrayerTimesScreen({Key? key}) : super(key: key);
 
-  @override
-  State<PrayerTimesScreen> createState() => _PrayerTimesScreenState();
-}
-
-class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   void _showLocationDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -406,7 +456,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('مواقيت الصلاة الدقيقة'),
         actions: [
@@ -443,21 +492,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (appRepository.errorMessage.isNotEmpty)
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        margin: const EdgeInsets.only(bottom: 16),
-                        decoration: BoxDecoration(
-                          color: Colors.amber.shade100,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.amber.shade700),
-                        ),
-                        child: Text(
-                          appRepository.errorMessage,
-                          style: TextStyle(color: Colors.amber.shade900, fontSize: 14),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
@@ -473,7 +507,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0D3B2E).withAlpha(90),
+                            color: const Color(0xFF0D3B2E).withOpacity(0.3),
                             blurRadius: 16,
                             offset: const Offset(0, 8),
                           ),
@@ -484,10 +518,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                           const Icon(Icons.mosque, color: Color(0xFFD4AF37), size: 55),
                           const SizedBox(height: 12),
                           Text(
-                            '${appRepository.currentCity} - ${appRepository.currentCountry}',
+                            '${appRepository.currentCityArabic} - ${appRepository.currentCountryArabic}',
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 22,
+                              fontSize: 24,
                               fontWeight: FontWeight.bold,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -529,7 +563,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(12),
+            color: Colors.black.withOpacity(0.04),
             blurRadius: 8,
             offset: const Offset(0, 4),
           ),
@@ -540,7 +574,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         leading: Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: const Color(0xFF0D3B2E).withAlpha(20),
+            color: const Color(0xFF0D3B2E).withOpacity(0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: const Color(0xFF0D3B2E)),
@@ -566,6 +600,10 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   }
 }
 
+// ==========================================
+// 8. HIGH-PERFORMANCE INTERACTIVE MASBAHA
+// ==========================================
+
 class AthkarScreen extends StatelessWidget {
   const AthkarScreen({Key? key}) : super(key: key);
 
@@ -576,185 +614,208 @@ class AthkarScreen extends StatelessWidget {
         title: const Text('الأذكار والمسبحة الإلكترونية'),
       ),
       body: SafeArea(
-        child: AnimatedBuilder(
-          animation: appRepository,
-          builder: (context, child) {
-            return ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const MasbahaDetailScreen(),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    margin: const EdgeInsets.only(bottom: 20),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFF0D3B2E), Color(0xFF1B5E4A)],
-                        begin: Alignment.topRight,
-                        end: Alignment.bottomLeft,
-                      ),
-                      borderRadius: BorderRadius.circular(22),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFF0D3B2E).withAlpha(80),
-                          blurRadius: 10,
-                          offset: const Offset(0, 5),
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(14),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFD4AF37).withAlpha(40),
-                            shape: BoxShape.circle,
-                          ),
-                          child: const Icon(
-                            Icons.fingerprint_rounded,
-                            size: 36,
-                            color: Color(0xFFD4AF37),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'المسبحة الإلكترونية التفاعلية',
-                                style: TextStyle(
-                                  fontSize: 19,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'انقر للبدء بالتسبيح والاستغفار',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Color(0xFFD4AF37),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const Icon(
-                          Icons.arrow_forward_ios_rounded,
-                          color: Colors.white,
-                          size: 20,
-                        ),
-                      ],
-                    ),
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            GestureDetector(
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const MasbahaDetailScreen(),
                   ),
-                ),
-
-                // تصحيح السطر 678 بطلب أسلوب النص داخل Text وليس داخل Padding
-                const Padding(
-                  padding: EdgeInsets.only(bottom: 12, right: 4),
-                  child: Text(
-                    'أقسام الأذكار والأدعية',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF0D3B2E),
-                    ),
+                );
+              },
+              child: Container(
+                margin: const EdgeInsets.only(bottom: 20),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFF0D3B2E), Color(0xFF1B5E4A)],
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomLeft,
                   ),
+                  borderRadius: BorderRadius.circular(22),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF0D3B2E).withOpacity(0.3),
+                      blurRadius: 10,
+                      offset: const Offset(0, 5),
+                    ),
+                  ],
                 ),
-
-                ...List.generate(appRepository.athkarCategories.length, (index) {
-                  final category = appRepository.athkarCategories[index];
-                  return GestureDetector(
-                    onTap: () {
-                      appRepository.resetThikrCount(category);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ThikrDetailScreen(category: category),
-                        ),
-                      );
-                    },
-                    child: Container(
-                      margin: const EdgeInsets.only(bottom: 14),
-                      padding: const EdgeInsets.all(18),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withAlpha(12),
-                            blurRadius: 8,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        color: const Color(0xFFD4AF37).withOpacity(0.2),
+                        shape: BoxShape.circle,
                       ),
-                      child: Row(
+                      child: const Icon(
+                        Icons.fingerprint_rounded,
+                        size: 36,
+                        color: Color(0xFFD4AF37),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(14),
-                            decoration: const BoxDecoration(
-                              color: Color(0xFF0D3B2E),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              category.icon,
-                              size: 28,
-                              color: const Color(0xFFD4AF37),
+                          Text(
+                            'المسبحة الإلكترونية التفاعلية',
+                            style: TextStyle(
+                              fontSize: 19,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
                             ),
                           ),
-                          const SizedBox(width: 16),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  category.title,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF0D3B2E),
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text(
-                                  'عدد الأذكار: ${category.athkar.length}',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey.shade600,
-                                  ),
-                                ),
-                              ],
+                          SizedBox(height: 4),
+                          Text(
+                            'انقر للبدء بالتسبيح مع الصوت والاهتزاز',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFFD4AF37),
                             ),
-                          ),
-                          const Icon(
-                            Icons.arrow_forward_ios_rounded,
-                            color: Color(0xFFD4AF37),
-                            size: 18,
                           ),
                         ],
                       ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_ios_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            const Padding(
+              padding: EdgeInsets.only(bottom: 12, right: 4),
+              child: Text(
+                'أقسام الأذكار والأدعية',
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Color(0xFF0D3B2E),
+                ),
+              ),
+            ),
+            ...List.generate(appRepository.athkarCategories.length, (index) {
+              final category = appRepository.athkarCategories[index];
+              return GestureDetector(
+                onTap: () {
+                  appRepository.resetThikrCount(category);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => ThikrDetailScreen(category: category),
                     ),
                   );
-                }),
-              ],
-            );
-          },
+                },
+                child: Container(
+                  margin: const EdgeInsets.only(bottom: 14),
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF0D3B2E),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          category.icon,
+                          size: 28,
+                          color: const Color(0xFFD4AF37),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              category.title,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF0D3B2E),
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'عدد الأذكار: ${category.athkar.length}',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        color: Color(0xFFD4AF37),
+                        size: 18,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }),
+          ],
         ),
       ),
     );
   }
 }
 
-class MasbahaDetailScreen extends StatelessWidget {
+class MasbahaDetailScreen extends StatefulWidget {
   const MasbahaDetailScreen({Key? key}) : super(key: key);
+
+  @override
+  State<MasbahaDetailScreen> createState() => _MasbahaDetailScreenState();
+}
+
+class _MasbahaDetailScreenState extends State<MasbahaDetailScreen> with SingleTickerProviderStateMixin {
+  late AnimationController _animController;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 100),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.93).animate(
+      CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animController.dispose();
+    super.dispose();
+  }
+
+  void _onTapCounter() {
+    _animController.forward().then((_) => _animController.reverse());
+    appRepository.incrementTasbeeh();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -763,57 +824,58 @@ class MasbahaDetailScreen extends StatelessWidget {
         title: const Text('المسبحة التفاعلية'),
       ),
       body: SafeArea(
-        child: AnimatedBuilder(
-          animation: appRepository,
-          builder: (context, child) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(10),
-                          blurRadius: 8,
-                        ),
-                      ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<int>(
-                        value: appRepository.selectedTasbeehIndex,
-                        isExpanded: true,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0D3B2E),
-                        ),
-                        items: List.generate(
-                          appRepository.tasbeehPhrases.length,
-                          (index) => DropdownMenuItem(
-                            value: index,
-                            child: Text(appRepository.tasbeehPhrases[index]),
-                          ),
-                        ),
-                        onChanged: (val) {
-                          if (val != null) appRepository.changeTasbeehPhrase(val);
-                        },
+                  ],
+                ),
+                child: DropdownButtonHideUnderline(
+                  child: DropdownButton<int>(
+                    value: appRepository.selectedTasbeehIndex,
+                    isExpanded: true,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0D3B2E),
+                    ),
+                    items: List.generate(
+                      appRepository.tasbeehPhrases.length,
+                      (index) => DropdownMenuItem(
+                        value: index,
+                        child: Text(appRepository.tasbeehPhrases[index]),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 40),
-
-                  GestureDetector(
-                    onTap: () {
-                      appRepository.incrementTasbeeh();
-                      HapticFeedback.lightImpact();
+                    onChanged: (val) {
+                      if (val != null) {
+                        setState(() {
+                          appRepository.changeTasbeehPhrase(val);
+                        });
+                      }
                     },
+                  ),
+                ),
+              ),
+              const SizedBox(height: 50),
+
+              GestureDetector(
+                onTap: _onTapCounter,
+                child: ScaleTransition(
+                  scale: _scaleAnimation,
+                  child: RepaintBoundary(
                     child: Container(
-                      width: 250,
-                      height: 250,
+                      width: 260,
+                      height: 260,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         gradient: const LinearGradient(
@@ -826,26 +888,31 @@ class MasbahaDetailScreen extends StatelessWidget {
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF0D3B2E).withAlpha(80),
+                            color: const Color(0xFF0D3B2E).withOpacity(0.35),
                             blurRadius: 25,
                             offset: const Offset(0, 10),
                           ),
                         ],
                         border: Border.all(
                           color: const Color(0xFFD4AF37),
-                          width: 4,
+                          width: 5,
                         ),
                       ),
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text(
-                            '${appRepository.tasbeehCounter}',
-                            style: const TextStyle(
-                              fontSize: 64,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFD4AF37),
-                            ),
+                          ValueListenableBuilder<int>(
+                            valueListenable: appRepository.tasbeehCounterNotifier,
+                            builder: (context, count, child) {
+                              return Text(
+                                '$count',
+                                style: const TextStyle(
+                                  fontSize: 68,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFFD4AF37),
+                                ),
+                              );
+                            },
                           ),
                           const SizedBox(height: 8),
                           const Text(
@@ -859,33 +926,36 @@ class MasbahaDetailScreen extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 40),
-
-                  ElevatedButton.icon(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.red.shade800,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () {
-                      appRepository.resetTasbeeh();
-                      HapticFeedback.mediumImpact();
-                    },
-                    icon: const Icon(Icons.refresh_rounded),
-                    label: const Text('تصفير العداد', style: TextStyle(fontSize: 16)),
-                  ),
-                ],
+                ),
               ),
-            );
-          },
+              const SizedBox(height: 50),
+
+              ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red.shade800,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                onPressed: () {
+                  appRepository.resetTasbeeh();
+                },
+                icon: const Icon(Icons.refresh_rounded),
+                label: const Text('تصفير العداد', style: TextStyle(fontSize: 16)),
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+// ==========================================
+// 9. THIKR DETAIL & SETTINGS SCREENS
+// ==========================================
 
 class ThikrDetailScreen extends StatelessWidget {
   final ThikrCategory category;
@@ -910,11 +980,11 @@ class ThikrDetailScreen extends StatelessWidget {
                 final isCompleted = thikr.currentCount >= thikr.targetCount;
 
                 return AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
+                  duration: const Duration(milliseconds: 250),
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: isCompleted ? const Color(0xFF0D3B2E).withAlpha(25) : Colors.white,
+                    color: isCompleted ? const Color(0xFF0D3B2E).withOpacity(0.1) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isCompleted ? const Color(0xFF0D3B2E) : Colors.transparent,
@@ -922,7 +992,7 @@ class ThikrDetailScreen extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withAlpha(12),
+                        color: Colors.black.withOpacity(0.04),
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -956,11 +1026,6 @@ class ThikrDetailScreen extends StatelessWidget {
                           GestureDetector(
                             onTap: () {
                               appRepository.incrementThikr(thikr);
-                              if (thikr.currentCount == thikr.targetCount) {
-                                HapticFeedback.heavyImpact();
-                              } else {
-                                HapticFeedback.lightImpact();
-                              }
                             },
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
@@ -973,7 +1038,7 @@ class ThikrDetailScreen extends StatelessWidget {
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF0D3B2E).withAlpha(51),
+                                    color: const Color(0xFF0D3B2E).withOpacity(0.2),
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
@@ -1041,7 +1106,10 @@ class SettingsScreen extends StatelessWidget {
                         DropdownMenuItem(value: 3, child: Text('الهيئة المصرية العامة للمساحة')),
                       ],
                       onChanged: (val) {
-                        if (val != null) appRepository.setCalculationMethod(val);
+                        if (val != null) {
+                          appRepository.calculationMethod = val;
+                          appRepository.loadPrayerTimes(appRepository.currentCity, appRepository.currentCountry);
+                        }
                       },
                     ),
                   ),
@@ -1056,13 +1124,13 @@ class SettingsScreen extends StatelessWidget {
                       ListTile(
                         leading: const Icon(Icons.location_city, color: Color(0xFF0D3B2E)),
                         title: const Text('المدينة والدولة الحالية'),
-                        subtitle: Text('${appRepository.currentCity} - ${appRepository.currentCountry}'),
+                        subtitle: Text('${appRepository.currentCityArabic} - ${appRepository.currentCountryArabic}'),
                       ),
                       const Divider(height: 1),
                       const ListTile(
                         leading: Icon(Icons.verified_user_rounded, color: Color(0xFF0D3B2E)),
                         title: Text('إصدار التطبيق'),
-                        subtitle: Text('3.0.0 (النسخة الاحترافية)'),
+                        subtitle: Text('3.0.0 (النسخة الاحترافية السريعة)'),
                       ),
                     ],
                   ),
@@ -1127,7 +1195,7 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
             TextField(
               controller: _countryController,
               decoration: const InputDecoration(
-                labelText: 'اسم الدولة',
+                labelText: 'اسم الدولة (مثال: Iraq أو العراق)',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.public),
               ),
@@ -1136,7 +1204,7 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
             TextField(
               controller: _cityController,
               decoration: const InputDecoration(
-                labelText: 'اسم المدينة أو القرية',
+                labelText: 'اسم المدينة (مثال: Baghdad أو بغداد)',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.location_city),
               ),
@@ -1168,4 +1236,3 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
     );
   }
 }
-
