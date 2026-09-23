@@ -1,5 +1,5 @@
 name: islamic_prayer_athkar_app
-description: "تطبيق إسلامي شامل لأوقات الصلاة والأذكار بتصميم محترف ومعمارية متكاملة"
+description: "تطبيق إسلامي شامل لأوقات الصلاة والأذكار بتصميم محترف"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -21,6 +21,3 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
-  assets:
-    - assets/sounds/
-    - assets/images/
