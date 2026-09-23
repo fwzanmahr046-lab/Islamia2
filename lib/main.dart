@@ -411,7 +411,7 @@ class AppRepository extends ChangeNotifier {
           targetCount: 1,
         ),
         ThikrData(
-          text: 'اللهم إني أسألك الهدى والتُقى والعَفاف والغِنى.',
+          text: 'اللهم إني أسألك الهدى والتُقى والعَفاف وغِنى.',
           reference: 'صحيح مسلم',
           targetCount: 1,
         ),
@@ -611,7 +611,7 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
         );
       },
       home: const MainNavigationScreen(),
-      // ✅ الخريطة هنا معرفة بدون const لتجنب خطأ non_constant_map_value
+      // ⚠️ تم إزالة const من بداية الخريطة هنا بأسلوب نهائي ومؤكد لمنع خطأ non_constant_map_value
       routes: {
         '/home': (context) => const MainNavigationScreen(),
       },
@@ -1516,3 +1516,4 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
     );
   }
 }
+
