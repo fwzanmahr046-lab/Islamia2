@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection; // تم منع التعارض بإضافة hide TextDirection
 
 // ==========================================
 // 1. DATA MODELS (نماذج البيانات)
@@ -231,8 +231,7 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
           primary: const Color(0xFF1B4332),
           secondary: const Color(0xFFD8F3DC),
           tertiary: const Color(0xFFE9C46A),
-          surface: Colors.white,
-          background: const Color(0xFFF8F9FA),
+          surface: Colors.white, // استبدال background بالخاصية الحديثة surface
         ),
         appBarTheme: const AppBarTheme(
           centerTitle: true,
@@ -248,7 +247,7 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
       ),
       builder: (context, child) {
         return Directionality(
-          textDirection: TextDirection.rtl,
+          textDirection: TextDirection.rtl, // تعمل الآن بدون تعارض
           child: child!,
         );
       },
@@ -397,7 +396,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: [
                           BoxShadow(
-                            color: const Color(0xFF1B4332).withOpacity(0.3),
+                            color: const Color(0xFF1B4332).withAlpha(77), // استبدال withOpacity بـ withAlpha
                             blurRadius: 15,
                             offset: const Offset(0, 8),
                           ),
@@ -454,7 +453,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withAlpha(10), // استبدال withOpacity بـ withAlpha
             blurRadius: 8,
             offset: const Offset(0, 3),
           ),
@@ -615,7 +614,7 @@ class AthkarScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(20),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
+                          color: Colors.black.withAlpha(13), // استبدال withOpacity بـ withAlpha
                           blurRadius: 10,
                           offset: const Offset(0, 4),
                         ),
@@ -694,7 +693,7 @@ class ThikrDetailScreen extends StatelessWidget {
                     ),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.05),
+                        color: Colors.black.withAlpha(13), // استبدال withOpacity بـ withAlpha
                         blurRadius: 8,
                         offset: const Offset(0, 3),
                       ),
@@ -745,7 +744,7 @@ class ThikrDetailScreen extends StatelessWidget {
                                 shape: BoxShape.circle,
                                 boxShadow: [
                                   BoxShadow(
-                                    color: const Color(0xFF1B4332).withOpacity(0.2),
+                                    color: const Color(0xFF1B4332).withAlpha(51), // استبدال withOpacity بـ withAlpha
                                     blurRadius: 8,
                                     offset: const Offset(0, 4),
                                   ),
@@ -778,4 +777,3 @@ class ThikrDetailScreen extends StatelessWidget {
     );
   }
 }
-
