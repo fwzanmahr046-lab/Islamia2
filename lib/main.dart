@@ -54,7 +54,7 @@ class PrayerTimesData {
     );
   }
 
-  // دالة تحويل الوقت من نظام 24 إلى نظام 12 ساعة (ص / م)
+  // تحويل الوقت من نظام 24 إلى نظام 12 ساعة مع (ص/م)
   static String _formatTo12Hour(String rawTime) {
     if (rawTime.isEmpty) return '';
     final cleanTime = rawTime.split(' ').first;
@@ -136,11 +136,10 @@ class AppRepository extends ChangeNotifier {
   
   String currentCity = 'Baghdad';
   String currentCountry = 'Iraq';
-  int calculationMethod = 4; // رابطة العالم الإسلامي كافتراضي
+  int calculationMethod = 4;
 
   // بيانات المسبحة
   int tasbeehCounter = 0;
-  int tasbeehTarget = 33;
   int selectedTasbeehIndex = 0;
   final List<String> tasbeehPhrases = [
     'سبحان الله',
@@ -159,9 +158,9 @@ class AppRepository extends ChangeNotifier {
       athkar: [
         ThikrData(text: 'أصبحنا وأصبح الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير.', targetCount: 1),
         ThikrData(text: 'اللهم بك أصبحنا، وبك أمسينا، وبك نحيا، وبك نموت، وإليك النشور.', targetCount: 1),
-        ThikrData(text: 'آية الكرسي: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ لا تَأْخُذُهُ سِنَةٌ وَلا نَوْمٌ...', targetCount: 1),
-        ThikrData(text: 'سورة الإخلاص، والمعوذتين (الفلق والناس).', targetCount: 3),
-        ThikrData(text: 'اصبحنا على فطرة الإسلام وعلى كلمة الإخلاص وعلى دين نبينا محمد صلى الله عليه وسلم.', targetCount: 1),
+        ThikrData(text: 'آية الكرسي: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', targetCount: 1),
+        ThikrData(text: 'سورة الإخلاص والمعوذتين.', targetCount: 3),
+        ThikrData(text: 'أصبحنا على فطرة الإسلام وعلى كلمة الإخلاص وعلى دين نبينا محمد صلى الله عليه وسلم.', targetCount: 1),
         ThikrData(text: 'رضيت بالله رباً، وبالإسلام ديناً، وبمحمد صلى الله عليه وسلم نبياً.', targetCount: 3),
         ThikrData(text: 'حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم.', targetCount: 7),
         ThikrData(text: 'بسم الله الذي لا يضر مع اسمه شيء في الأرض ولا في السماء وهو السميع العليم.', targetCount: 3),
@@ -177,8 +176,7 @@ class AppRepository extends ChangeNotifier {
         ThikrData(text: 'أمسينـا وأمسـى المـلك لله والحمد لله، لا إله إلاّ اللّه وحدَه لا شريك له.', targetCount: 1),
         ThikrData(text: 'اللهم بك أمسينا، وبك أصبحنا، وبك نحيا، وبك نموت، وإليك المصير.', targetCount: 1),
         ThikrData(text: 'آية الكرسي: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', targetCount: 1),
-        ThikrData(text: 'سورة الإخلاص، والمعوذتين (الفلق والناس).', targetCount: 3),
-        ThikrData(text: 'أمسينا على فطرة الإسلام وعلى كلمة الإخلاص وعلى دين نبينا محمد صلى الله عليه وسلم.', targetCount: 1),
+        ThikrData(text: 'سورة الإخلاص والمعوذتين.', targetCount: 3),
         ThikrData(text: 'أعوذ بكلمات الله التامات من شر ما خلق.', targetCount: 3),
         ThikrData(text: 'اللهم إني أسألك العفو والعافية في الدنيا والآخرة.', targetCount: 1),
         ThikrData(text: 'أستغفر الله وأتوب إليه.', targetCount: 100),
@@ -190,7 +188,7 @@ class AppRepository extends ChangeNotifier {
       athkar: [
         ThikrData(text: 'أستغفر الله، أستغفر الله، أستغفر الله.', targetCount: 1),
         ThikrData(text: 'اللهم أنت السلام ومنك السلام، تباركت يا ذا الجلال والإكرام.', targetCount: 1),
-        ThikrData(text: 'لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير، اللهم لا مانع لما أعطيت ولا معطي لما منعت.', targetCount: 1),
+        ThikrData(text: 'لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير.', targetCount: 1),
         ThikrData(text: 'سبحان الله (33)، الحمد لله (33)، الله أكبر (33).', targetCount: 99),
         ThikrData(text: 'لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير (تمام المائة).', targetCount: 1),
       ],
@@ -201,8 +199,7 @@ class AppRepository extends ChangeNotifier {
       athkar: [
         ThikrData(text: 'باسمك ربي وضعت جنبي، وبك أرفعه، فإن أمسكت نفسي فارحمها، وإن أرسلتها فاحفظها.', targetCount: 1),
         ThikrData(text: 'اللهم قني عذابك يوم تبعث عبادك.', targetCount: 3),
-        ThikrData(text: 'باسمك اللهم أموت وأحيا.', targetCount: 1),
-        ThikrData(text: 'الحمد لله الذي أحيانا بعد ما أماتنا وإليه النشور (عند الاستيقاظ).', targetCount: 1),
+        ThikrData(text: 'الحمد لله الذي أحيانا بعد ما أماتنا وإليه النشور.', targetCount: 1),
       ],
     ),
     ThikrCategory(
@@ -211,7 +208,7 @@ class AppRepository extends ChangeNotifier {
       athkar: [
         ThikrData(text: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ.', targetCount: 1),
         ThikrData(text: 'رَبَّنَا لا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً إِنَّكَ أَنْتَ الْوَهَّابُ.', targetCount: 1),
-        ThikrData(text: 'رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي وَاحْلُلْ عُقْدَةً مِنْ لِسَانِي يَفْقَهُوا قَوْلِي.', targetCount: 1),
+        ThikrData(text: 'رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي.', targetCount: 1),
         ThikrData(text: 'اللهم إنك عفو كريم تحب العفو فاعفُ عني.', targetCount: 1),
       ],
     ),
@@ -244,7 +241,6 @@ class AppRepository extends ChangeNotifier {
     loadPrayerTimes(currentCity, currentCountry);
   }
 
-  // عمليات المسبحة
   void incrementTasbeeh() {
     tasbeehCounter++;
     notifyListeners();
@@ -299,7 +295,6 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // الألوان الملكية الغامقة والفاخرة
     const primaryDark = Color(0xFF0D3B2E);
     const secondaryGold = Color(0xFFD4AF37);
     const bgLight = Color(0xFFF2F5F3);
@@ -313,8 +308,7 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
           seedColor: primaryDark,
           primary: primaryDark,
           secondary: secondaryGold,
-          surface: Colors.white,
-          background: bgLight,
+          surface: Colors.white, // تم حذف background وإصلاح التحذير نهائياً
         ),
         scaffoldBackgroundColor: bgLight,
         appBarTheme: const AppBarTheme(
@@ -356,7 +350,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = const [
     PrayerTimesScreen(),
     AthkarScreen(),
-    MasbahaScreen(),
     SettingsScreen(),
   ];
 
@@ -381,15 +374,11 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.access_time_filled_rounded),
-            label: 'الصلاة',
+            label: 'مواقيت الصلاة',
           ),
           NavigationDestination(
             icon: Icon(Icons.menu_book_rounded),
-            label: 'الأذكار',
-          ),
-          NavigationDestination(
-            icon: Icon(Icons.fingerprint_rounded),
-            label: 'المسبحة',
+            label: 'الأذكار والمسبحة',
           ),
           NavigationDestination(
             icon: Icon(Icons.settings_rounded),
@@ -476,7 +465,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                         ),
                       ),
                     
-                    // بطاقة عنوان الموقع الفاخرة
+                    // بطاقة الموقع
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
@@ -525,7 +514,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                     ),
                     const SizedBox(height: 20),
                     
-                    // قائمة الأوقات بنظام 12 ساعة (ص/م)
                     _buildPrayerRow('الفجر', data.fajr, Icons.nights_stay_outlined),
                     _buildPrayerRow('الشروق', data.sunrise, Icons.wb_sunny_outlined),
                     _buildPrayerRow('الظهر', data.dhuhr, Icons.wb_sunny_rounded),
@@ -588,7 +576,7 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
 }
 
 // ------------------------------------------
-// SCREEN 2: الأذكار والدعاء (Athkar Screen)
+// SCREEN 2: الأذكار والأدعية والمسبحة (Athkar & Masbaha Screen)
 // ------------------------------------------
 
 class AthkarScreen extends StatelessWidget {
@@ -598,38 +586,40 @@ class AthkarScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الأذكار والأدعية المأثورة'),
+        title: const Text('الأذكار والمسبحة الإلكترونية'),
       ),
       body: SafeArea(
         child: AnimatedBuilder(
           animation: appRepository,
           builder: (context, child) {
-            return ListView.builder(
+            return ListView(
               padding: const EdgeInsets.all(16),
-              itemCount: appRepository.athkarCategories.length,
-              itemBuilder: (context, index) {
-                final category = appRepository.athkarCategories[index];
-                return GestureDetector(
+              children: [
+                // زر قسم المسبحة الإلكترونية (داخل قسم الأذكار)
+                GestureDetector(
                   onTap: () {
-                    appRepository.resetThikrCount(category);
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => ThikrDetailScreen(category: category),
+                        builder: (_) => const MasbahaDetailScreen(),
                       ),
                     );
                   },
                   child: Container(
-                    margin: const EdgeInsets.only(bottom: 14),
-                    padding: const EdgeInsets.all(18),
+                    margin: const EdgeInsets.only(bottom: 20),
+                    padding: const EdgeInsets.all(20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF0D3B2E), Color(0xFF1B5E4A)],
+                        begin: Alignment.topRight,
+                        end: Alignment.bottomLeft,
+                      ),
+                      borderRadius: BorderRadius.circular(22),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.black.withAlpha(12),
-                          blurRadius: 8,
-                          offset: const Offset(0, 4),
+                          color: const Color(0xFF0D3B2E).withAlpha(80),
+                          blurRadius: 10,
+                          offset: const Offset(0, 5),
                         ),
                       ],
                     ),
@@ -637,35 +627,35 @@ class AthkarScreen extends StatelessWidget {
                       children: [
                         Container(
                           padding: const EdgeInsets.all(14),
-                          decoration: const BoxDecoration(
-                            color: Color(0xFF0D3B2E),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFD4AF37).withAlpha(40),
                             shape: BoxShape.circle,
                           ),
-                          child: Icon(
-                            category.icon,
-                            size: 30,
-                            color: const Color(0xFFD4AF37),
+                          child: const Icon(
+                            Icons.fingerprint_rounded,
+                            size: 36,
+                            color: Color(0xFFD4AF37),
                           ),
                         ),
                         const SizedBox(width: 16),
-                        Expanded(
+                        const Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                category.title,
-                                style: const TextStyle(
-                                  fontSize: 18,
+                                'المسبحة الإلكترونية التفاعلية',
+                                style: TextStyle(
+                                  fontSize: 19,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF0D3B2E),
+                                  color: Colors.white,
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: 4),
                               Text(
-                                'عدد الأذكار: ${category.athkar.length}',
+                                'انقر للبدء بالتسبيح والاستغفار',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Colors.grey.shade600,
+                                  color: Color(0xFFD4AF37),
                                 ),
                               ),
                             ],
@@ -673,14 +663,235 @@ class AthkarScreen extends StatelessWidget {
                         ),
                         const Icon(
                           Icons.arrow_forward_ios_rounded,
-                          color: Color(0xFFD4AF37),
+                          color: Colors.white,
                           size: 20,
                         ),
                       ],
                     ),
                   ),
-                );
-              },
+                ),
+
+                const Padding(
+                  padding: EdgeInsets.only(bottom: 12, right: 4),
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF0D3B2E),
+                  ),
+                  child: Text('أقسام الأذكار والأدعية'),
+                ),
+
+                // قائمة الأقسام للأذكار
+                ...List.generate(appRepository.athkarCategories.length, (index) {
+                  final category = appRepository.athkarCategories[index];
+                  return GestureDetector(
+                    onTap: () {
+                      appRepository.resetThikrCount(category);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ThikrDetailScreen(category: category),
+                        ),
+                      );
+                    },
+                    child: Container(
+                      margin: const EdgeInsets.only(bottom: 14),
+                      padding: const EdgeInsets.all(18),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withAlpha(12),
+                            blurRadius: 8,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(14),
+                            decoration: const BoxDecoration(
+                              color: Color(0xFF0D3B2E),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              category.icon,
+                              size: 28,
+                              color: const Color(0xFFD4AF37),
+                            ),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  category.title,
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                    color: Color(0xFF0D3B2E),
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'عدد الأذكار: ${category.athkar.length}',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    color: Colors.grey.shade600,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          const Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            color: Color(0xFFD4AF37),
+                            size: 18,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+
+// شاشة تفاصيل المسبحة تفاعلية (تم تضمينها داخل قسم الأذكار)
+class MasbahaDetailScreen extends StatelessWidget {
+  const MasbahaDetailScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('المسبحة التفاعلية'),
+      ),
+      body: SafeArea(
+        child: AnimatedBuilder(
+          animation: appRepository,
+          builder: (context, child) {
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withAlpha(10),
+                          blurRadius: 8,
+                        ),
+                      ],
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<int>(
+                        value: appRepository.selectedTasbeehIndex,
+                        isExpanded: true,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF0D3B2E),
+                        ),
+                        items: List.generate(
+                          appRepository.tasbeehPhrases.length,
+                          (index) => DropdownMenuItem(
+                            value: index,
+                            child: Text(appRepository.tasbeehPhrases[index]),
+                          ),
+                        ),
+                        onChanged: (val) {
+                          if (val != null) appRepository.changeTasbeehPhrase(val);
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+
+                  GestureDetector(
+                    onTap: () {
+                      appRepository.incrementTasbeeh();
+                      HapticFeedback.lightImpact();
+                    },
+                    child: Container(
+                      width: 250,
+                      height: 250,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        gradient: const LinearGradient(
+                          colors: [
+                            Color(0xFF0D3B2E),
+                            Color(0xFF1B5E4A),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFF0D3B2E).withAlpha(80),
+                            blurRadius: 25,
+                            offset: const Offset(0, 10),
+                          ),
+                        ],
+                        border: Border.all(
+                          color: const Color(0xFFD4AF37),
+                          width: 4,
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            '${appRepository.tasbeehCounter}',
+                            style: const TextStyle(
+                              fontSize: 64,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFD4AF37),
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'اضغط للتسبيح',
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.white70,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
+
+                  ElevatedButton.icon(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red.shade800,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      appRepository.resetTasbeeh();
+                      HapticFeedback.mediumImpact();
+                    },
+                    icon: const Icon(Icons.refresh_rounded),
+                    label: const Text('تصفير العداد', style: TextStyle(fontSize: 16)),
+                  ),
+                ],
+              ),
             );
           },
         ),
@@ -810,153 +1021,7 @@ class ThikrDetailScreen extends StatelessWidget {
 }
 
 // ------------------------------------------
-// SCREEN 3: المسبحة الإلكترونية (Masbaha Screen)
-// ------------------------------------------
-
-class MasbahaScreen extends StatelessWidget {
-  const MasbahaScreen({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('المسبحة التفاعلية'),
-      ),
-      body: SafeArea(
-        child: AnimatedBuilder(
-          animation: appRepository,
-          builder: (context, child) {
-            return SingleChildScrollView(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                children: [
-                  // اختيار الذكر
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withAlpha(10),
-                          blurRadius: 8,
-                        ),
-                      ],
-                    ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<int>(
-                        value: appRepository.selectedTasbeehIndex,
-                        isExpanded: true,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF0D3B2E),
-                        ),
-                        items: List.generate(
-                          appRepository.tasbeehPhrases.length,
-                          (index) => DropdownMenuItem(
-                            value: index,
-                            child: Text(appRepository.tasbeehPhrases[index]),
-                          ),
-                        ),
-                        onChanged: (val) {
-                          if (val != null) appRepository.changeTasbeehPhrase(val);
-                        },
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 30),
-
-                  // العداد التفاعلي الكبيرة
-                  GestureDetector(
-                    onTap: () {
-                      appRepository.incrementTasbeeh();
-                      HapticFeedback.lightImpact();
-                    },
-                    child: Container(
-                      width: 260,
-                      height: 260,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFF0D3B2E),
-                            Color(0xFF1B5E4A),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        boxShadow: [
-                          BoxShadow(
-                            color: const Color(0xFF0D3B2E).withAlpha(80),
-                            blurRadius: 25,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                        border: Border.all(
-                          color: const Color(0xFFD4AF37),
-                          width: 4,
-                        ),
-                      ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            '${appRepository.tasbeehCounter}',
-                            style: const TextStyle(
-                              fontSize: 64,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFFD4AF37),
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'اضغط للتسبيح',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-
-                  // أزرار التحكم
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      ElevatedButton.icon(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red.shade800,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () {
-                          appRepository.resetTasbeeh();
-                          HapticFeedback.mediumImpact();
-                        },
-                        icon: const Icon(Icons.refresh_rounded),
-                        label: const Text('تصفير العداد', style: TextStyle(fontSize: 16)),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            );
-          },
-        ),
-      ),
-    );
-  }
-}
-
-// ------------------------------------------
-// SCREEN 4: الإعدادات والتحكم (Settings Screen)
+// SCREEN 3: الإعدادات (Settings Screen)
 // ------------------------------------------
 
 class SettingsScreen extends StatelessWidget {
@@ -1042,7 +1107,6 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
-// نافذة تغيير المدينة والبلد
 class LocationSearchDialog extends StatefulWidget {
   const LocationSearchDialog({Key? key}) : super(key: key);
 
