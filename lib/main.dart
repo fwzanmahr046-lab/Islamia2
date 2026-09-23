@@ -1080,7 +1080,6 @@ class ThikrDetailScreen extends StatelessWidget {
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
-  @style
   @override
   Widget build(BuildContext context) {
     return Scaffold(
