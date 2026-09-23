@@ -6,7 +6,7 @@ import 'dart:async';
 import 'package:intl/intl.dart' hide TextDirection;
 
 // ==========================================
-// 1. DATA MODELS (نماذج البيانات)
+// 1. DATA MODELS
 // ==========================================
 
 class PrayerTimesData {
@@ -54,7 +54,6 @@ class PrayerTimesData {
     );
   }
 
-  // تحويل الوقت من نظام 24 إلى نظام 12 ساعة مع (ص/م)
   static String _formatTo12Hour(String rawTime) {
     if (rawTime.isEmpty) return '';
     final cleanTime = rawTime.split(' ').first;
@@ -101,7 +100,7 @@ class ThikrCategory {
 }
 
 // ==========================================
-// 2. API & CLOUD SERVICE LAYER
+// 2. API SERVICE
 // ==========================================
 
 class IslamicApiService {
@@ -124,21 +123,20 @@ class IslamicApiService {
 }
 
 // ==========================================
-// 3. STATE MANAGEMENT REPOSITORY
+// 3. REPOSITORY STATE MANAGEMENT
 // ==========================================
 
 class AppRepository extends ChangeNotifier {
   final IslamicApiService _apiService = IslamicApiService();
-  
+
   PrayerTimesData? prayerTimes;
   bool isLoading = true;
   String errorMessage = '';
-  
+
   String currentCity = 'Baghdad';
   String currentCountry = 'Iraq';
   int calculationMethod = 4;
 
-  // بيانات المسبحة
   int tasbeehCounter = 0;
   int selectedTasbeehIndex = 0;
   final List<String> tasbeehPhrases = [
@@ -207,7 +205,7 @@ class AppRepository extends ChangeNotifier {
       icon: Icons.menu_book_rounded,
       athkar: [
         ThikrData(text: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ.', targetCount: 1),
-        ThikrData(text: 'رَبَّنَا لا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً إِنَّكَ أَنْتَ الْوَهَّابُ.', targetCount: 1),
+        ThikrData(text: 'رَبَّنَا لا تُزِغْ قُلُوبَنَا بَعْدَ إِذْ هَدَيْتَنَا وَهَبْ لَنَا مِنْ لَدُنْكَ رَحْمَةً إِنَّك أَنْتَ الْوَهَّابُ.', targetCount: 1),
         ThikrData(text: 'رَبِّ اشْرَحْ لِي صَدْرِي وَيَسِّرْ لِي أَمْرِي.', targetCount: 1),
         ThikrData(text: 'اللهم إنك عفو كريم تحب العفو فاعفُ عني.', targetCount: 1),
       ],
@@ -275,7 +273,7 @@ class AppRepository extends ChangeNotifier {
 final AppRepository appRepository = AppRepository();
 
 // ==========================================
-// 4. MAIN APP ENTRY POINT
+// 4. MAIN ENTRY POINT
 // ==========================================
 
 void main() {
@@ -308,7 +306,7 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
           seedColor: primaryDark,
           primary: primaryDark,
           secondary: secondaryGold,
-          surface: Colors.white, // تم حذف background وإصلاح التحذير نهائياً
+          surface: Colors.white,
         ),
         scaffoldBackgroundColor: bgLight,
         appBarTheme: const AppBarTheme(
@@ -335,7 +333,7 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
 }
 
 // ==========================================
-// 5. MAIN NAVIGATION & SCREENS
+// 5. NAVIGATION & SCREENS
 // ==========================================
 
 class MainNavigationScreen extends StatefulWidget {
@@ -389,10 +387,6 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
     );
   }
 }
-
-// ------------------------------------------
-// SCREEN 1: مواقيت الصلاة (Prayer Times Screen)
-// ------------------------------------------
 
 class PrayerTimesScreen extends StatefulWidget {
   const PrayerTimesScreen({Key? key}) : super(key: key);
@@ -464,8 +458,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                           textAlign: TextAlign.center,
                         ),
                       ),
-                    
-                    // بطاقة الموقع
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
@@ -513,7 +505,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    
                     _buildPrayerRow('الفجر', data.fajr, Icons.nights_stay_outlined),
                     _buildPrayerRow('الشروق', data.sunrise, Icons.wb_sunny_outlined),
                     _buildPrayerRow('الظهر', data.dhuhr, Icons.wb_sunny_rounded),
@@ -575,10 +566,6 @@ class _PrayerTimesScreenState extends State<PrayerTimesScreen> {
   }
 }
 
-// ------------------------------------------
-// SCREEN 2: الأذكار والأدعية والمسبحة (Athkar & Masbaha Screen)
-// ------------------------------------------
-
 class AthkarScreen extends StatelessWidget {
   const AthkarScreen({Key? key}) : super(key: key);
 
@@ -595,7 +582,6 @@ class AthkarScreen extends StatelessWidget {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                // زر قسم المسبحة الإلكترونية (داخل قسم الأذكار)
                 GestureDetector(
                   onTap: () {
                     Navigator.push(
@@ -671,17 +657,19 @@ class AthkarScreen extends StatelessWidget {
                   ),
                 ),
 
+                // تصحيح السطر 678 بطلب أسلوب النص داخل Text وليس داخل Padding
                 const Padding(
                   padding: EdgeInsets.only(bottom: 12, right: 4),
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF0D3B2E),
+                  child: Text(
+                    'أقسام الأذكار والأدعية',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF0D3B2E),
+                    ),
                   ),
-                  child: Text('أقسام الأذكار والأدعية'),
                 ),
 
-                // قائمة الأقسام للأذكار
                 ...List.generate(appRepository.athkarCategories.length, (index) {
                   final category = appRepository.athkarCategories[index];
                   return GestureDetector(
@@ -765,7 +753,6 @@ class AthkarScreen extends StatelessWidget {
   }
 }
 
-// شاشة تفاصيل المسبحة تفاعلية (تم تضمينها داخل قسم الأذكار)
 class MasbahaDetailScreen extends StatelessWidget {
   const MasbahaDetailScreen({Key? key}) : super(key: key);
 
@@ -1020,10 +1007,6 @@ class ThikrDetailScreen extends StatelessWidget {
   }
 }
 
-// ------------------------------------------
-// SCREEN 3: الإعدادات (Settings Screen)
-// ------------------------------------------
-
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({Key? key}) : super(key: key);
 
@@ -1185,3 +1168,4 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
     );
   }
 }
+
