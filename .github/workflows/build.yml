@@ -33,6 +33,9 @@ jobs:
       - name: Analyze Flutter Project Code
         run: flutter analyze
 
+      - name: Generate Android Project Structure
+        run: flutter create . --platforms=android --org com.example.islamicapp
+
       - name: Build Debug APK File
         run: flutter build apk --debug
 
