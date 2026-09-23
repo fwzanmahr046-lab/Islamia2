@@ -9,7 +9,6 @@ import 'package:adhan/adhan.dart' as adhan_lib;
 // ==========================================
 
 class LocationService {
-  // Bi-directional dictionary for Arabic/English names
   static const Map<String, String> _arabicToEnglish = {
     'بغداد': 'Baghdad',
     'العراق': 'Iraq',
@@ -80,7 +79,6 @@ class LocationService {
     'turkey': 'تركيا',
   };
 
-  // Known city coordinates fallback map
   static const Map<String, adhan_lib.Coordinates> _cityCoordinates = {
     'baghdad': adhan_lib.Coordinates(33.3152, 44.3661),
     'najaf': adhan_lib.Coordinates(32.0259, 44.3463),
@@ -140,7 +138,7 @@ class PrayerTimesData {
   final String isha;
   final String date;
 
-  const PrayerTimesData({
+  PrayerTimesData({
     required this.fajr,
     required this.sunrise,
     required this.dhuhr,
@@ -205,7 +203,7 @@ class PrayerTimesData {
 }
 
 // ==========================================
-// 3. ATHKAR & DUA MODELS & VERIFIED DATA
+// 3. ATHKAR & DUA MODELS & DATA
 // ==========================================
 
 class ThikrData {
@@ -249,16 +247,15 @@ class AppRepository extends ChangeNotifier {
   String get currentCityArabic => LocationService.toArabic(currentCity);
   String get currentCountryArabic => LocationService.toArabic(currentCountry);
 
-  int calculationMethod = 4; // Default: Umm Al-Qura / standard
-  int asrJurisprudence = 0;  // 0: Standard/Shafi, 1: Hanafi
+  int calculationMethod = 4; // أم القرى
+  int asrJurisprudence = 0;  // 0: الجمهور، 1: الحنفي
 
-  // Fast In-Memory Cache for Zero Delay
   final Map<String, PrayerTimesData> _prayerCache = {};
 
   final ValueNotifier<int> tasbeehCounterNotifier = ValueNotifier<int>(0);
   int selectedTasbeehIndex = 0;
 
-  final List<String> tasbeehPhrases = const [
+  final List<String> tasbeehPhrases = [
     'سبحان الله',
     'الحمد لله',
     'الله أكبر',
@@ -269,7 +266,6 @@ class AppRepository extends ChangeNotifier {
     'سبحان الله وبحمده، سبحان الله العظيم',
   ];
 
-  // 26 FULLY VERIFIED ATHKAR AND DUAS (صحيحة وموثقة 100%)
   final List<ThikrCategory> athkarCategories = [
     ThikrCategory(
       title: 'أذكار الصباح',
@@ -421,7 +417,7 @@ class AppRepository extends ChangeNotifier {
         ),
         ThikrData(
           text: 'لا إله إلا أنت سبحانك إني كنت من الظالمين.',
-          reference: 'دعاء ذي النون - سنن الترمذي (لم يدعُ بها رجل مسلم في شيء قط إلا استجاب الله له)',
+          reference: 'دعاء ذي النون - سنن الترمذي',
           targetCount: 1,
         ),
         ThikrData(
@@ -442,7 +438,6 @@ class AppRepository extends ChangeNotifier {
     final countryEng = LocationService.toEnglish(country);
     final cacheKey = '$cityEng-$countryEng-$calculationMethod-$asrJurisprudence';
 
-    // Fast Load from Cache if available
     if (_prayerCache.containsKey(cacheKey)) {
       prayerTimes = _prayerCache[cacheKey];
       currentCity = cityEng;
@@ -488,22 +483,22 @@ class AppRepository extends ChangeNotifier {
     
     adhan_lib.CalculationParameters params;
     switch (calculationMethod) {
-      case 7: // Tehran / Shia Jafari
+      case 7:
         params = adhan_lib.CalculationMethod.tehran.getParameters();
         break;
-      case 3: // MWL
+      case 3:
         params = adhan_lib.CalculationMethod.muslim_world_league.getParameters();
         break;
-      case 5: // Egyptian
+      case 5:
         params = adhan_lib.CalculationMethod.egyptian.getParameters();
         break;
-      case 1: // Karachi
+      case 1:
         params = adhan_lib.CalculationMethod.karachi.getParameters();
         break;
-      case 2: // ISNA
+      case 2:
         params = adhan_lib.CalculationMethod.north_america.getParameters();
         break;
-      case 4: // Umm Al Qura
+      case 4:
       default:
         params = adhan_lib.CalculationMethod.umm_al_qura.getParameters();
         break;
@@ -518,8 +513,7 @@ class AppRepository extends ChangeNotifier {
     final dateComponents = adhan_lib.DateComponents.from(DateTime.now());
     final times = adhan_lib.PrayerTimes(coords, dateComponents, params);
     
-    final localData = PrayerTimesData.fromAdhanLib(times);
-    prayerTimes = localData;
+    prayerTimes = PrayerTimesData.fromAdhanLib(times);
     currentCity = city;
   }
 
@@ -562,7 +556,7 @@ class AppRepository extends ChangeNotifier {
 final AppRepository appRepository = AppRepository();
 
 // ==========================================
-// 5. MAIN APPLICATION UI
+// 5. MAIN APPLICATION ENTRY
 // ==========================================
 
 void main() {
@@ -617,6 +611,10 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
         );
       },
       home: const MainNavigationScreen(),
+      // ✅ الخريطة هنا معرفة بدون const لتجنب خطأ non_constant_map_value
+      routes: {
+        '/home': (context) => const MainNavigationScreen(),
+      },
     );
   }
 }
@@ -673,7 +671,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 }
 
 // ==========================================
-// 6. PRAYER TIMES SCREEN (OPTIMIZED)
+// 6. PRAYER TIMES SCREEN
 // ==========================================
 
 class PrayerTimesScreen extends StatelessWidget {
@@ -1431,7 +1429,7 @@ class SettingsScreen extends StatelessWidget {
 }
 
 // ==========================================
-// 9. LOCATION SEARCH DIALOG (FULLY FIXED)
+// 9. LOCATION SEARCH DIALOG
 // ==========================================
 
 class LocationSearchDialog extends StatefulWidget {
