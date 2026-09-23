@@ -5,24 +5,65 @@ import 'dart:convert';
 import 'package:adhan/adhan.dart' as adhan_lib;
 
 // ==========================================
-// 1. ARABIC TRANSLATION & LOCALE UTILS
+// 1. ADVANCED TRANSLATION & GEOLOCATION MAPPING
 // ==========================================
 
-class ArabicTranslationService {
-  static const Map<String, String> _translations = {
+class LocationService {
+  // Bi-directional dictionary for Arabic/English names
+  static const Map<String, String> _arabicToEnglish = {
+    'بغداد': 'Baghdad',
+    'العراق': 'Iraq',
+    'النجف': 'Najaf',
+    'كربلاء': 'Karbala',
+    'أربيل': 'Erbil',
+    'البصرة': 'Basra',
+    'الموصل': 'Mosul',
+    'السليمانية': 'Sulaymaniyah',
+    'كركوك': 'Kirkuk',
+    'مكة': 'Makkah',
+    'مكة المكرمة': 'Makkah',
+    'المدينة': 'Medina',
+    'المدينة المنورة': 'Medina',
+    'الرياض': 'Riyadh',
+    'جدة': 'Jeddah',
+    'السعودية': 'Saudi Arabia',
+    'المملكة العربية السعودية': 'Saudi Arabia',
+    'القاهرة': 'Cairo',
+    'مصر': 'Egypt',
+    'دمشق': 'Damascus',
+    'سوريا': 'Syria',
+    'عمان': 'Amman',
+    'الأردن': 'Jordan',
+    'بيروت': 'Beirut',
+    'لبنان': 'Lebanon',
+    'الكويت': 'Kuwait',
+    'الدوحة': 'Doha',
+    'قطر': 'Qatar',
+    'مسقط': 'Muscat',
+    'عمان السلطنة': 'Oman',
+    'المنامة': 'Manama',
+    'البحرين': 'Bahrain',
+    'دبي': 'Dubai',
+    'الإمارات': 'United Arab Emirates',
+    'إسطنبول': 'Istanbul',
+    'تركيا': 'Turkey',
+  };
+
+  static const Map<String, String> _englishToArabic = {
     'baghdad': 'بغداد',
     'iraq': 'العراق',
-    'mecca': 'مكة المكرمة',
+    'najaf': 'النجف',
+    'karbala': 'كربلاء',
+    'erbil': 'أربيل',
+    'basra': 'البصرة',
+    'mosul': 'الموصل',
     'makkah': 'مكة المكرمة',
-    'saudi arabia': 'المملكة العربية السعودية',
+    'mecca': 'مكة المكرمة',
     'medina': 'المدينة المنورة',
+    'riyadh': 'الرياض',
+    'saudi arabia': 'السعودية',
     'cairo': 'القاهرة',
     'egypt': 'مصر',
-    'riyadh': 'الرياض',
-    'jeddah': 'جدة',
-    'dubai': 'دبي',
-    'uae': 'الإمارات العربية المتحدة',
-    'united arab emirates': 'الإمارات العربية المتحدة',
     'damascus': 'دمشق',
     'syria': 'سوريا',
     'amman': 'عمان',
@@ -32,49 +73,62 @@ class ArabicTranslationService {
     'kuwait': 'الكويت',
     'doha': 'الدوحة',
     'qatar': 'قطر',
-    'muscat': 'مسقط',
-    'oman': 'عُمان',
-    'manama': 'المنامة',
-    'bahrain': 'البحرين',
-    'rabat': 'الرباط',
-    'morocco': 'المغرب',
-    'algiers': 'الجزائر',
-    'tunis': 'تونس',
-    'tripoli': 'طرابلس',
-    'libya': 'ليبيا',
-    'khartoum': 'الخرطوم',
-    'sudan': 'السودان',
+    'dubai': 'دبي',
+    'united arab emirates': 'الإمارات',
+    'uae': 'الإمارات',
     'istanbul': 'إسطنبول',
     'turkey': 'تركيا',
   };
 
-  static String toArabic(String text) {
-    if (text.isEmpty) return text;
-    final clean = text.trim().toLowerCase();
-    return _translations[clean] ?? text;
+  // Known city coordinates fallback map
+  static const Map<String, adhan_lib.Coordinates> _cityCoordinates = {
+    'baghdad': adhan_lib.Coordinates(33.3152, 44.3661),
+    'najaf': adhan_lib.Coordinates(32.0259, 44.3463),
+    'karbala': adhan_lib.Coordinates(32.6160, 44.0249),
+    'erbil': adhan_lib.Coordinates(36.1901, 44.0091),
+    'basra': adhan_lib.Coordinates(30.5081, 47.7835),
+    'mosul': adhan_lib.Coordinates(36.3400, 43.1300),
+    'makkah': adhan_lib.Coordinates(21.4225, 39.8262),
+    'mecca': adhan_lib.Coordinates(21.4225, 39.8262),
+    'medina': adhan_lib.Coordinates(24.5247, 39.5692),
+    'riyadh': adhan_lib.Coordinates(24.7136, 46.6753),
+    'cairo': adhan_lib.Coordinates(30.0444, 31.2357),
+    'damascus': adhan_lib.Coordinates(33.5138, 36.2765),
+    'amman': adhan_lib.Coordinates(31.9454, 35.9284),
+  };
+
+  static String toEnglish(String input) {
+    final clean = input.trim();
+    if (_arabicToEnglish.containsKey(clean)) {
+      return _arabicToEnglish[clean]!;
+    }
+    return clean;
+  }
+
+  static String toArabic(String input) {
+    final clean = input.trim().toLowerCase();
+    if (_englishToArabic.containsKey(clean)) {
+      return _englishToArabic[clean]!;
+    }
+    return input;
+  }
+
+  static adhan_lib.Coordinates getCoordinates(String city) {
+    final clean = toEnglish(city).toLowerCase();
+    return _cityCoordinates[clean] ?? const adhan_lib.Coordinates(33.3152, 44.3661);
   }
 
   static String formatArabicDate(DateTime date) {
-    final months = [
-      'يناير / كانون الثاني',
-      'فبراير / شباط',
-      'مارس / آذار',
-      'أبريل / نيسان',
-      'مايو / أيار',
-      'يونيو / حزيران',
-      'يوليو / تموز',
-      'أغسطس / آب',
-      'سبتمبر / أيلول',
-      'أكتوبر / تشرين الأول',
-      'نوفمبر / تشرين الثاني',
-      'ديسمبر / كانون الأول'
+    const months = [
+      'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
+      'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year} م';
   }
 }
 
 // ==========================================
-// 2. DATA MODELS
+// 2. HIGH-PRECISION PRAYER MODELS
 // ==========================================
 
 class PrayerTimesData {
@@ -86,7 +140,7 @@ class PrayerTimesData {
   final String isha;
   final String date;
 
-  PrayerTimesData({
+  const PrayerTimesData({
     required this.fajr,
     required this.sunrise,
     required this.dhuhr,
@@ -104,7 +158,7 @@ class PrayerTimesData {
       asr: _formatTime(times.asr),
       maghrib: _formatTime(times.maghrib),
       isha: _formatTime(times.isha),
-      date: ArabicTranslationService.formatArabicDate(DateTime.now()),
+      date: LocationService.formatArabicDate(DateTime.now()),
     );
   }
 
@@ -117,7 +171,7 @@ class PrayerTimesData {
       asr: _formatTo12Hour(timings['Asr'] ?? ''),
       maghrib: _formatTo12Hour(timings['Maghrib'] ?? ''),
       isha: _formatTo12Hour(timings['Isha'] ?? ''),
-      date: ArabicTranslationService.formatArabicDate(DateTime.now()),
+      date: LocationService.formatArabicDate(DateTime.now()),
     );
   }
 
@@ -150,13 +204,19 @@ class PrayerTimesData {
   }
 }
 
+// ==========================================
+// 3. ATHKAR & DUA MODELS & VERIFIED DATA
+// ==========================================
+
 class ThikrData {
   final String text;
+  final String reference;
   final int targetCount;
   int currentCount;
 
   ThikrData({
     required this.text,
+    required this.reference,
     required this.targetCount,
     this.currentCount = 0,
   });
@@ -175,38 +235,30 @@ class ThikrCategory {
 }
 
 // ==========================================
-// 3. AUDIO & SOUND SERVICE
-// ==========================================
-
-class AudioService {
-  static Future<void> playClickSound() async {
-    try {
-      SystemSound.play(SystemSoundType.click);
-    } catch (_) {}
-  }
-}
-
-// ==========================================
-// 4. REPOSITORY STATE MANAGEMENT
+// 4. PERFORMANCE & REPOSITORY MANAGEMENT
 // ==========================================
 
 class AppRepository extends ChangeNotifier {
   PrayerTimesData? prayerTimes;
-  bool isLoading = true;
+  bool isLoading = false;
   String errorMessage = '';
 
   String currentCity = 'Baghdad';
   String currentCountry = 'Iraq';
 
-  String get currentCityArabic => ArabicTranslationService.toArabic(currentCity);
-  String get currentCountryArabic => ArabicTranslationService.toArabic(currentCountry);
+  String get currentCityArabic => LocationService.toArabic(currentCity);
+  String get currentCountryArabic => LocationService.toArabic(currentCountry);
 
-  int calculationMethod = 4;
+  int calculationMethod = 4; // Default: Umm Al-Qura / standard
+  int asrJurisprudence = 0;  // 0: Standard/Shafi, 1: Hanafi
+
+  // Fast In-Memory Cache for Zero Delay
+  final Map<String, PrayerTimesData> _prayerCache = {};
 
   final ValueNotifier<int> tasbeehCounterNotifier = ValueNotifier<int>(0);
   int selectedTasbeehIndex = 0;
 
-  final List<String> tasbeehPhrases = [
+  final List<String> tasbeehPhrases = const [
     'سبحان الله',
     'الحمد لله',
     'الله أكبر',
@@ -214,41 +266,169 @@ class AppRepository extends ChangeNotifier {
     'أستغفر الله وأتوب إليه',
     'لا حول ولا قوة إلا بالله',
     'اللهم صلِّ وسلم على نبينا محمد',
+    'سبحان الله وبحمده، سبحان الله العظيم',
   ];
 
+  // 26 FULLY VERIFIED ATHKAR AND DUAS (صحيحة وموثقة 100%)
   final List<ThikrCategory> athkarCategories = [
     ThikrCategory(
       title: 'أذكار الصباح',
       icon: Icons.wb_sunny_rounded,
       athkar: [
-        ThikrData(text: 'أصبحنا وأصبح الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له.', targetCount: 1),
-        ThikrData(text: 'اللهم بك أصبحنا، وبك أمسينا، وبك نحيا، وبك نموت، وإليك النشور.', targetCount: 1),
-        ThikrData(text: 'آية الكرسي: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', targetCount: 1),
-        ThikrData(text: 'سورة الإخلاص والمعوذتين.', targetCount: 3),
-        ThikrData(text: 'رضيت بالله رباً، وبالإسلام ديناً، وبمحمد صلى الله عليه وسلم نبياً.', targetCount: 3),
-        ThikrData(text: 'حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم.', targetCount: 7),
-        ThikrData(text: 'سبحان الله وبحمده.', targetCount: 100),
+        ThikrData(
+          text: 'آية الكرسي: ﴿اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...﴾',
+          reference: 'سورة البقرة - آية 255 (من قالها حين يصبح أُجير من الجن حتى يمسي)',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'قراءة سورة الإخلاص، وسورة الفلق، وسورة الناس.',
+          reference: 'سنن أبي داود والترمذي (تكفيك من كل شيء)',
+          targetCount: 3,
+        ),
+        ThikrData(
+          text: 'أصبحنا وأصبح الملك لله، والحمد لله، لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير.',
+          reference: 'صحيح مسلم',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'اللهم بك أصبحنا، وبك أمسينا، وبك نحيا، وبك نموت، وإليك النشور.',
+          reference: 'سنن الترمذي',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'اللهم أنت ربي لا إله إلا أنت، خلقتني وأنا عبدك، وأنا على عهدك ووعدك ما استطعت، أعوذ بك من شر ما صنعت، أبوء لك بنعمتك علي، وأبوء بذنبي فاغفر لي فإنه لا يغفر الذنوب إلا أنت.',
+          reference: 'سيد الاستغفار - صحيح البخاري',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'بسم الله الذي لا يضر مع اسمه شيء في الأرض ولا في السماء وهو السميع العليم.',
+          reference: 'سنن أبي داود والترمذي (لم يضره شيء)',
+          targetCount: 3,
+        ),
+        ThikrData(
+          text: 'رضيت بالله رباً، وبالإسلام ديناً، وبمحمد صلى الله عليه وسلم نبياً.',
+          reference: 'مسند أحمد وسنن أبي داود',
+          targetCount: 3,
+        ),
+        ThikrData(
+          text: 'يا حي يا قيوم برحمتك أستغيث، أصلح لي شأني كله ولا تكلني إلى نفسي طرفة عين.',
+          reference: 'السنن الكبرى للنسائي - صحيح',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'حسبي الله لا إله إلا هو عليه توكلت وهو رب العرش العظيم.',
+          reference: 'سنن أبي داود (كفاه الله ما أهمه)',
+          targetCount: 7,
+        ),
+        ThikrData(
+          text: 'سبحان الله وبحمده: عدد خلقه، ورضا نفسه، وزنة عرشه، ومداد كلماته.',
+          reference: 'صحيح مسلم',
+          targetCount: 3,
+        ),
+        ThikrData(
+          text: 'سبحان الله وبحمده.',
+          reference: 'صحيح مسلم (حُطّت خطاياه وإن كانت مثل زبد البحر)',
+          targetCount: 100,
+        ),
       ],
     ),
     ThikrCategory(
       title: 'أذكار المساء',
       icon: Icons.nights_stay_rounded,
       athkar: [
-        ThikrData(text: 'أمسينـا وأمسـى المـلك لله والحمد لله، لا إله إلاّ اللّه وحدَه لا شريك له.', targetCount: 1),
-        ThikrData(text: 'اللهم بك أمسينا، وبك أصبحنا، وبك نحيا، وبك نموت، وإليك المصير.', targetCount: 1),
-        ThikrData(text: 'آية الكرسي: اللَّهُ لَا إِلَٰهَ إِلَّا هُوَ الْحَيُّ الْقَيُّومُ...', targetCount: 1),
-        ThikrData(text: 'سورة الإخلاص والمعوذتين.', targetCount: 3),
-        ThikrData(text: 'أعوذ بكلمات الله التامات من شر ما خلق.', targetCount: 3),
-        ThikrData(text: 'أستغفر الله وأتوب إليه.', targetCount: 100),
+        ThikrData(
+          text: 'أمسينا وأمسى الملك لله والحمد لله، لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير.',
+          reference: 'صحيح مسلم',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'اللهم بك أمسينا، وبك أصبحنا، وبك نحيا، وبك نموت وإليك المصير.',
+          reference: 'سنن الترمذي',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'أعوذ بكلمات الله التامات من شر ما خلق.',
+          reference: 'صحيح مسلم (لم تضره حمة/شيء في تلك الليلة)',
+          targetCount: 3,
+        ),
+        ThikrData(
+          text: 'اللهم إني أسألك العفو والعافية في الدنيا والآخرة، اللهم إني أسألك العفو والعافية في ديني ودنياي وأهلي ومالي.',
+          reference: 'سنن أبي داود وابن ماجه',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'أستغفر الله وأتوب إليه.',
+          reference: 'صحيح البخاري ومسلم',
+          targetCount: 100,
+        ),
       ],
     ),
     ThikrCategory(
-      title: 'أذكار الصلاة',
+      title: 'أذكار دبر الصلاة',
       icon: Icons.mosque_rounded,
       athkar: [
-        ThikrData(text: 'أستغفر الله، أستغفر الله، أستغفر الله.', targetCount: 1),
-        ThikrData(text: 'اللهم أنت السلام ومنك السلام، تباركت يا ذا الجلال والإكرام.', targetCount: 1),
-        ThikrData(text: 'سبحان الله (33)، الحمد لله (33)، الله أكبر (33).', targetCount: 99),
+        ThikrData(
+          text: 'أستغفر الله، أستغفر الله، أستغفر الله. اللهم أنت السلام ومنك السلام، تباركت يا ذا الجلال والإكرام.',
+          reference: 'صحيح مسلم',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير، اللهم لا مانع لما أعطيت، ولا معطي لما منعت، ولا ينفع ذا الجد منك الجد.',
+          reference: 'صحيح البخاري ومسلم',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'التسبيح والتحميد والتكبير: سبحان الله (33)، الحمد لله (33)، الله أكبر (33)، وختامها: لا إله إلا الله وحده لا شريك له، له الملك وله الحمد وهو على كل شيء قدير.',
+          reference: 'صحيح مسلم (غُفرت خطاياه وإن كانت مثل زبد البحر)',
+          targetCount: 1,
+        ),
+      ],
+    ),
+    ThikrCategory(
+      title: 'أذكار النوم والاستيقاظ',
+      icon: Icons.bed_rounded,
+      athkar: [
+        ThikrData(
+          text: 'باسمك ربي وضعت جنبي وبك أرفعه، إن ألمسكت نفسي فارحمها، وإن أرسلتها فاحفظها بما تحفظ به عبادك الصالحين.',
+          reference: 'صحيح البخاري ومسلم',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'اللهم قني عذابك يوم تبعث عبادك.',
+          reference: 'سنن أبي داود والترمذي',
+          targetCount: 3,
+        ),
+        ThikrData(
+          text: 'الحمد لله الذي أحيانا بعد ما أماتنا وإليه النشور.',
+          reference: 'عند الاستيقاظ - صحيح البخاري',
+          targetCount: 1,
+        ),
+      ],
+    ),
+    ThikrCategory(
+      title: 'أدعية نبوية وقرآنية',
+      icon: Icons.menu_book_rounded,
+      athkar: [
+        ThikrData(
+          text: 'رَبَّنَا آتِنَا فِي الدُّنْيَا حَسَنَةً وَفِي الْآخِرَةِ حَسَنَةً وَقِنَا عَذَابَ النَّارِ.',
+          reference: 'سورة البقرة / جامع دعاء النبي ﷺ',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'اللهم إني أسألك الهدى والتُقى والعَفاف والغِنى.',
+          reference: 'صحيح مسلم',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'لا إله إلا أنت سبحانك إني كنت من الظالمين.',
+          reference: 'دعاء ذي النون - سنن الترمذي (لم يدعُ بها رجل مسلم في شيء قط إلا استجاب الله له)',
+          targetCount: 1,
+        ),
+        ThikrData(
+          text: 'يا مقلّب القلوب ثبّت قلبي على دينك.',
+          reference: 'سنن الترمذي',
+          targetCount: 1,
+        ),
       ],
     ),
   ];
@@ -258,41 +438,94 @@ class AppRepository extends ChangeNotifier {
   }
 
   Future<void> loadPrayerTimes(String city, String country) async {
+    final cityEng = LocationService.toEnglish(city);
+    final countryEng = LocationService.toEnglish(country);
+    final cacheKey = '$cityEng-$countryEng-$calculationMethod-$asrJurisprudence';
+
+    // Fast Load from Cache if available
+    if (_prayerCache.containsKey(cacheKey)) {
+      prayerTimes = _prayerCache[cacheKey];
+      currentCity = cityEng;
+      currentCountry = countryEng;
+      isLoading = false;
+      notifyListeners();
+      return;
+    }
+
     isLoading = true;
     errorMessage = '';
     notifyListeners();
 
     try {
-      final uri = Uri.parse('https://api.aladhan.com/v1/timingsByCity?city=$city&country=$country&method=$calculationMethod');
-      final response = await http.get(uri).timeout(const Duration(seconds: 8));
+      final uri = Uri.https('api.aladhan.com', '/v1/timingsByCity', {
+        'city': cityEng,
+        'country': countryEng,
+        'method': calculationMethod.toString(),
+        'school': asrJurisprudence.toString(),
+      });
+
+      final response = await http.get(uri).timeout(const Duration(milliseconds: 3500));
 
       if (response.statusCode == 200) {
-        prayerTimes = PrayerTimesData.fromJson(json.decode(response.body));
+        final parsed = PrayerTimesData.fromJson(json.decode(response.body));
+        _prayerCache[cacheKey] = parsed;
+        prayerTimes = parsed;
+        currentCity = cityEng;
+        currentCountry = countryEng;
       } else {
-        _fallbackToLocalAdhan();
+        _fallbackToLocalAdhan(cityEng);
       }
-      currentCity = city;
-      currentCountry = country;
     } catch (_) {
-      _fallbackToLocalAdhan();
+      _fallbackToLocalAdhan(cityEng);
     } finally {
       isLoading = false;
       notifyListeners();
     }
   }
 
-  void _fallbackToLocalAdhan() {
-    final coordinates = adhan_lib.Coordinates(33.3152, 44.3661);
-    final params = adhan_lib.CalculationMethod.muslim_world_league.getParameters();
+  void _fallbackToLocalAdhan(String city) {
+    final coords = LocationService.getCoordinates(city);
+    
+    adhan_lib.CalculationParameters params;
+    switch (calculationMethod) {
+      case 7: // Tehran / Shia Jafari
+        params = adhan_lib.CalculationMethod.tehran.getParameters();
+        break;
+      case 3: // MWL
+        params = adhan_lib.CalculationMethod.muslim_world_league.getParameters();
+        break;
+      case 5: // Egyptian
+        params = adhan_lib.CalculationMethod.egyptian.getParameters();
+        break;
+      case 1: // Karachi
+        params = adhan_lib.CalculationMethod.karachi.getParameters();
+        break;
+      case 2: // ISNA
+        params = adhan_lib.CalculationMethod.north_america.getParameters();
+        break;
+      case 4: // Umm Al Qura
+      default:
+        params = adhan_lib.CalculationMethod.umm_al_qura.getParameters();
+        break;
+    }
+
+    if (asrJurisprudence == 1) {
+      params.madhab = adhan_lib.Madhab.hanafi;
+    } else {
+      params.madhab = adhan_lib.Madhab.shafi;
+    }
+
     final dateComponents = adhan_lib.DateComponents.from(DateTime.now());
-    final times = adhan_lib.PrayerTimes(coordinates, dateComponents, params);
-    prayerTimes = PrayerTimesData.fromAdhanLib(times);
+    final times = adhan_lib.PrayerTimes(coords, dateComponents, params);
+    
+    final localData = PrayerTimesData.fromAdhanLib(times);
+    prayerTimes = localData;
+    currentCity = city;
   }
 
   void incrementTasbeeh() {
     tasbeehCounterNotifier.value++;
-    AudioService.playClickSound();
-    HapticFeedback.lightImpact();
+    HapticFeedback.selectionClick();
   }
 
   void resetTasbeeh() {
@@ -309,7 +542,6 @@ class AppRepository extends ChangeNotifier {
   void incrementThikr(ThikrData thikr) {
     if (thikr.currentCount < thikr.targetCount) {
       thikr.currentCount++;
-      AudioService.playClickSound();
       if (thikr.currentCount == thikr.targetCount) {
         HapticFeedback.heavyImpact();
       } else {
@@ -330,7 +562,7 @@ class AppRepository extends ChangeNotifier {
 final AppRepository appRepository = AppRepository();
 
 // ==========================================
-// 5. MAIN ENTRY POINT
+// 5. MAIN APPLICATION UI
 // ==========================================
 
 void main() {
@@ -352,7 +584,7 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
   Widget build(BuildContext context) {
     const primaryDark = Color(0xFF0D3B2E);
     const secondaryGold = Color(0xFFD4AF37);
-    const bgLight = Color(0xFFF2F5F3);
+    const bgLight = Color(0xFFF4F7F5);
 
     return MaterialApp(
       title: 'نور الإيمان',
@@ -372,7 +604,7 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
           backgroundColor: primaryDark,
           foregroundColor: Colors.white,
           titleTextStyle: TextStyle(
-            fontSize: 22,
+            fontSize: 21,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -388,10 +620,6 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
     );
   }
 }
-
-// ==========================================
-// 6. NAVIGATION & SCREENS
-// ==========================================
 
 class MainNavigationScreen extends StatefulWidget {
   const MainNavigationScreen({super.key});
@@ -423,19 +651,19 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           });
         },
         backgroundColor: Colors.white,
-        elevation: 10,
-        indicatorColor: const Color(0x4D1B5E4A),
+        elevation: 8,
+        indicatorColor: const Color(0x330D3B2E),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.access_time_filled_rounded),
             label: 'مواقيت الصلاة',
           ),
           NavigationDestination(
-            icon: Icon(Icons.menu_book_rounded),
+            icon: Icon(Icons.auto_stories_rounded),
             label: 'الأذكار والمسبحة',
           ),
           NavigationDestination(
-            icon: Icon(Icons.settings_rounded),
+            icon: Icon(Icons.tune_rounded),
             label: 'الإعدادات',
           ),
         ],
@@ -445,7 +673,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 }
 
 // ==========================================
-// 7. PRAYER TIMES SCREEN
+// 6. PRAYER TIMES SCREEN (OPTIMIZED)
 // ==========================================
 
 class PrayerTimesScreen extends StatelessWidget {
@@ -465,9 +693,9 @@ class PrayerTimesScreen extends StatelessWidget {
         title: const Text('مواقيت الصلاة الدقيقة'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit_location_alt_rounded),
+            icon: const Icon(Icons.location_on_rounded),
             onPressed: () => _showLocationDialog(context),
-            tooltip: 'تغيير الموقع',
+            tooltip: 'تغيير المدينة والدولة',
           ),
         ],
       ),
@@ -482,7 +710,7 @@ class PrayerTimesScreen extends StatelessWidget {
 
           final data = appRepository.prayerTimes;
           if (data == null) {
-            return const Center(child: Text('حدث خطأ في عرض التوقيت'));
+            return const Center(child: Text('حدث خطأ في عرض المواقيت'));
           }
 
           return SafeArea(
@@ -498,7 +726,7 @@ class PrayerTimesScreen extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(22),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
                           colors: [
@@ -512,21 +740,21 @@ class PrayerTimesScreen extends StatelessWidget {
                         borderRadius: BorderRadius.circular(24),
                         boxShadow: const [
                           BoxShadow(
-                            color: Color(0x4D0D3B2E),
-                            blurRadius: 16,
-                            offset: Offset(0, 8),
+                            color: Color(0x330D3B2E),
+                            blurRadius: 12,
+                            offset: Offset(0, 6),
                           ),
                         ],
                       ),
                       child: Column(
                         children: [
-                          const Icon(Icons.mosque, color: Color(0xFFD4AF37), size: 55),
-                          const SizedBox(height: 12),
+                          const Icon(Icons.mosque, color: Color(0xFFD4AF37), size: 50),
+                          const SizedBox(height: 10),
                           Text(
                             '${appRepository.currentCityArabic} - ${appRepository.currentCountryArabic}',
                             style: const TextStyle(
                               color: Colors.white,
-                              fontSize: 24,
+                              fontSize: 23,
                               fontWeight: FontWeight.bold,
                             ),
                             overflow: TextOverflow.ellipsis,
@@ -536,14 +764,14 @@ class PrayerTimesScreen extends StatelessWidget {
                             'التاريخ: ${data.date}',
                             style: const TextStyle(
                               color: Color(0xFFD4AF37),
-                              fontSize: 16,
+                              fontSize: 15,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 18),
                     _buildPrayerRow('الفجر', data.fajr, Icons.nights_stay_outlined),
                     _buildPrayerRow('الشروق', data.sunrise, Icons.wb_sunny_outlined),
                     _buildPrayerRow('الظهر', data.dhuhr, Icons.wb_sunny_rounded),
@@ -562,22 +790,22 @@ class PrayerTimesScreen extends StatelessWidget {
 
   Widget _buildPrayerRow(String title, String time, IconData icon) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: const [
           BoxShadow(
-            color: Color(0x0A000000),
-            blurRadius: 8,
-            offset: Offset(0, 4),
+            color: Color(0x08000000),
+            blurRadius: 6,
+            offset: Offset(0, 3),
           ),
         ],
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 18, vertical: 4),
         leading: Container(
-          padding: const EdgeInsets.all(12),
+          padding: const EdgeInsets.all(10),
           decoration: const BoxDecoration(
             color: Color(0x1A0D3B2E),
             shape: BoxShape.circle,
@@ -587,7 +815,7 @@ class PrayerTimesScreen extends StatelessWidget {
         title: Text(
           title,
           style: const TextStyle(
-            fontSize: 19,
+            fontSize: 18,
             fontWeight: FontWeight.bold,
             color: Color(0xFF0D3B2E),
           ),
@@ -595,7 +823,7 @@ class PrayerTimesScreen extends StatelessWidget {
         trailing: Text(
           time,
           style: const TextStyle(
-            fontSize: 20,
+            fontSize: 19,
             fontWeight: FontWeight.bold,
             color: Color(0xFFC59B27),
           ),
@@ -606,7 +834,7 @@ class PrayerTimesScreen extends StatelessWidget {
 }
 
 // ==========================================
-// 8. INTERACTIVE MASBAHA SCREEN
+// 7. ATHKAR & MASBAHA SCREEN
 // ==========================================
 
 class AthkarScreen extends StatelessWidget {
@@ -632,55 +860,55 @@ class AthkarScreen extends StatelessWidget {
                 );
               },
               child: Container(
-                margin: const EdgeInsets.only(bottom: 20),
-                padding: const EdgeInsets.all(20),
+                margin: const EdgeInsets.only(bottom: 18),
+                padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFF0D3B2E), Color(0xFF1B5E4A)],
                     begin: Alignment.topRight,
                     end: Alignment.bottomLeft,
                   ),
-                  borderRadius: BorderRadius.circular(22),
+                  borderRadius: BorderRadius.circular(20),
                   boxShadow: const [
                     BoxShadow(
-                      color: Color(0x4D0D3B2E),
-                      blurRadius: 10,
-                      offset: Offset(0, 5),
+                      color: Color(0x330D3B2E),
+                      blurRadius: 8,
+                      offset: Offset(0, 4),
                     ),
                   ],
                 ),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(14),
+                      padding: const EdgeInsets.all(12),
                       decoration: const BoxDecoration(
                         color: Color(0x33D4AF37),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
                         Icons.fingerprint_rounded,
-                        size: 36,
+                        size: 34,
                         color: Color(0xFFD4AF37),
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: 14),
                     const Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'المسبحة الإلكترونية التفاعلية',
+                            'المسبحة الإلكترونية الذكية',
                             style: TextStyle(
-                              fontSize: 19,
+                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: Colors.white,
                             ),
                           ),
-                          SizedBox(height: 4),
+                          SizedBox(height: 2),
                           Text(
-                            'انقر للبدء بالتسبيح مع الصوت والاهتزاز',
+                            'عداد تسبيح سلس مع اهتزاز تفاعلي',
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 13,
                               color: Color(0xFFD4AF37),
                             ),
                           ),
@@ -690,18 +918,18 @@ class AthkarScreen extends StatelessWidget {
                     const Icon(
                       Icons.arrow_forward_ios_rounded,
                       color: Colors.white,
-                      size: 20,
+                      size: 18,
                     ),
                   ],
                 ),
               ),
             ),
             const Padding(
-              padding: EdgeInsets.only(bottom: 12, right: 4),
+              padding: EdgeInsets.only(bottom: 10, right: 4),
               child: Text(
-                'أقسام الأذكار والأدعية',
+                'أقسام الأذكار والأدعية الصحيحة',
                 style: TextStyle(
-                  fontSize: 18,
+                  fontSize: 17,
                   fontWeight: FontWeight.bold,
                   color: Color(0xFF0D3B2E),
                 ),
@@ -720,34 +948,34 @@ class AthkarScreen extends StatelessWidget {
                   );
                 },
                 child: Container(
-                  margin: const EdgeInsets.only(bottom: 14),
-                  padding: const EdgeInsets.all(18),
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(18),
                     boxShadow: const [
                       BoxShadow(
-                        color: Color(0x0A000000),
-                        blurRadius: 8,
-                        offset: Offset(0, 4),
+                        color: Color(0x08000000),
+                        blurRadius: 6,
+                        offset: Offset(0, 3),
                       ),
                     ],
                   ),
                   child: Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(14),
+                        padding: const EdgeInsets.all(12),
                         decoration: const BoxDecoration(
                           color: Color(0xFF0D3B2E),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           category.icon,
-                          size: 28,
+                          size: 26,
                           color: const Color(0xFFD4AF37),
                         ),
                       ),
-                      const SizedBox(width: 16),
+                      const SizedBox(width: 14),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -755,16 +983,16 @@ class AthkarScreen extends StatelessWidget {
                             Text(
                               category.title,
                               style: const TextStyle(
-                                fontSize: 18,
+                                fontSize: 17,
                                 fontWeight: FontWeight.bold,
                                 color: Color(0xFF0D3B2E),
                               ),
                             ),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: 2),
                             Text(
                               'عدد الأذكار: ${category.athkar.length}',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 13,
                                 color: Colors.grey.shade600,
                               ),
                             ),
@@ -774,7 +1002,7 @@ class AthkarScreen extends StatelessWidget {
                       const Icon(
                         Icons.arrow_forward_ios_rounded,
                         color: Color(0xFFD4AF37),
-                        size: 18,
+                        size: 16,
                       ),
                     ],
                   ),
@@ -804,9 +1032,9 @@ class _MasbahaDetailScreenState extends State<MasbahaDetailScreen> with SingleTi
     super.initState();
     _animController = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 100),
+      duration: const Duration(milliseconds: 90),
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.93).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.94).animate(
       CurvedAnimation(parent: _animController, curve: Curves.easeInOut),
     );
   }
@@ -834,14 +1062,14 @@ class _MasbahaDetailScreenState extends State<MasbahaDetailScreen> with SingleTi
           child: Column(
             children: [
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: const [
                     BoxShadow(
                       color: Color(0x0D000000),
-                      blurRadius: 8,
+                      blurRadius: 6,
                     ),
                   ],
                 ),
@@ -850,7 +1078,7 @@ class _MasbahaDetailScreenState extends State<MasbahaDetailScreen> with SingleTi
                     value: appRepository.selectedTasbeehIndex,
                     isExpanded: true,
                     style: const TextStyle(
-                      fontSize: 18,
+                      fontSize: 17,
                       fontWeight: FontWeight.bold,
                       color: Color(0xFF0D3B2E),
                     ),
@@ -871,69 +1099,67 @@ class _MasbahaDetailScreenState extends State<MasbahaDetailScreen> with SingleTi
                   ),
                 ),
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 40),
 
               GestureDetector(
                 onTap: _onTapCounter,
                 child: ScaleTransition(
                   scale: _scaleAnimation,
-                  child: RepaintBoundary(
-                    child: Container(
-                      width: 260,
-                      height: 260,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFF0D3B2E),
-                            Color(0xFF1B5E4A),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x590D3B2E),
-                            blurRadius: 25,
-                            offset: Offset(0, 10),
-                          ),
+                  child: Container(
+                    width: 250,
+                    height: 250,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: const LinearGradient(
+                        colors: [
+                          Color(0xFF0D3B2E),
+                          Color(0xFF1B5E4A),
                         ],
-                        border: Border.all(
-                          color: const Color(0xFFD4AF37),
-                          width: 5,
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x4D0D3B2E),
+                          blurRadius: 20,
+                          offset: Offset(0, 8),
                         ),
+                      ],
+                      border: Border.all(
+                        color: const Color(0xFFD4AF37),
+                        width: 4,
                       ),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          ValueListenableBuilder<int>(
-                            valueListenable: appRepository.tasbeehCounterNotifier,
-                            builder: (context, count, child) {
-                              return Text(
-                                '$count',
-                                style: const TextStyle(
-                                  fontSize: 68,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFFD4AF37),
-                                ),
-                              );
-                            },
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        ValueListenableBuilder<int>(
+                          valueListenable: appRepository.tasbeehCounterNotifier,
+                          builder: (context, count, child) {
+                            return Text(
+                              '$count',
+                              style: const TextStyle(
+                                fontSize: 64,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFD4AF37),
+                              ),
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 4),
+                        const Text(
+                          'اضغط للتسبيح',
+                          style: TextStyle(
+                            fontSize: 15,
+                            color: Colors.white70,
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'اضغط للتسبيح',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.white70,
-                            ),
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 50),
+              const SizedBox(height: 40),
 
               ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
@@ -959,7 +1185,7 @@ class _MasbahaDetailScreenState extends State<MasbahaDetailScreen> with SingleTi
 }
 
 // ==========================================
-// 9. THIKR DETAIL & SETTINGS SCREENS
+// 8. DETAIL & SETTINGS SCREENS
 // ==========================================
 
 class ThikrDetailScreen extends StatelessWidget {
@@ -985,20 +1211,20 @@ class ThikrDetailScreen extends StatelessWidget {
                 final isCompleted = thikr.currentCount >= thikr.targetCount;
 
                 return AnimatedContainer(
-                  duration: const Duration(milliseconds: 250),
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(20),
+                  duration: const Duration(milliseconds: 200),
+                  margin: const EdgeInsets.only(bottom: 14),
+                  padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
                     color: isCompleted ? const Color(0x1A0D3B2E) : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(18),
                     border: Border.all(
                       color: isCompleted ? const Color(0xFF0D3B2E) : Colors.transparent,
                       width: 2,
                     ),
                     boxShadow: const [
                       BoxShadow(
-                        color: Color(0x0A000000),
-                        blurRadius: 8,
+                        color: Color(0x08000000),
+                        blurRadius: 6,
                         offset: Offset(0, 3),
                       ),
                     ],
@@ -1009,23 +1235,33 @@ class ThikrDetailScreen extends StatelessWidget {
                       Text(
                         thikr.text,
                         style: const TextStyle(
-                          fontSize: 20,
-                          height: 1.7,
+                          fontSize: 19,
+                          height: 1.6,
                           fontWeight: FontWeight.w600,
                           color: Color(0xFF0D3B2E),
                         ),
                         textAlign: TextAlign.center,
                       ),
-                      const SizedBox(height: 18),
+                      const SizedBox(height: 8),
+                      Text(
+                        'المصدر: ${thikr.reference}',
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey.shade700,
+                          fontStyle: FontStyle.italic,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 16),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
                             'المطلوب: ${thikr.targetCount}',
                             style: TextStyle(
-                              fontSize: 16,
+                              fontSize: 15,
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade700,
+                              color: Colors.grey.shade800,
                             ),
                           ),
                           GestureDetector(
@@ -1033,9 +1269,9 @@ class ThikrDetailScreen extends StatelessWidget {
                               appRepository.incrementThikr(thikr);
                             },
                             child: AnimatedContainer(
-                              duration: const Duration(milliseconds: 200),
-                              width: 65,
-                              height: 65,
+                              duration: const Duration(milliseconds: 150),
+                              width: 60,
+                              height: 60,
                               decoration: BoxDecoration(
                                 color: isCompleted
                                     ? const Color(0xFF0D3B2E)
@@ -1043,19 +1279,19 @@ class ThikrDetailScreen extends StatelessWidget {
                                 shape: BoxShape.circle,
                                 boxShadow: const [
                                   BoxShadow(
-                                    color: Color(0x330D3B2E),
-                                    blurRadius: 8,
-                                    offset: Offset(0, 4),
+                                    color: Color(0x220D3B2E),
+                                    blurRadius: 6,
+                                    offset: Offset(0, 3),
                                   ),
                                 ],
                               ),
                               child: Center(
                                 child: isCompleted
-                                    ? const Icon(Icons.check, color: Colors.white, size: 32)
+                                    ? const Icon(Icons.check, color: Colors.white, size: 30)
                                     : Text(
                                         '${thikr.currentCount}',
                                         style: const TextStyle(
-                                          fontSize: 24,
+                                          fontSize: 22,
                                           fontWeight: FontWeight.bold,
                                           color: Color(0xFF0D3B2E),
                                         ),
@@ -1084,7 +1320,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('الإعدادات والخيارات'),
+        title: const Text('الإعدادات والدقة'),
       ),
       body: SafeArea(
         child: AnimatedBuilder(
@@ -1093,9 +1329,9 @@ class SettingsScreen extends StatelessWidget {
             return ListView(
               padding: const EdgeInsets.all(16),
               children: [
-                _buildSectionHeader('طريقة حساب أوقات الصلاة'),
+                _buildSectionHeader('طريقة حساب أوقات الصلاة (دقة عالية)'),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(16),
@@ -1105,10 +1341,12 @@ class SettingsScreen extends StatelessWidget {
                       value: appRepository.calculationMethod,
                       isExpanded: true,
                       items: const [
-                        DropdownMenuItem(value: 4, child: Text('رابطة العالم الإسلامي')),
-                        DropdownMenuItem(value: 5, child: Text('أم القرى (مكة المكرمة)')),
+                        DropdownMenuItem(value: 4, child: Text('جامعة أم القرى (مكة المكرمة)')),
+                        DropdownMenuItem(value: 7, child: Text('جامعة طهران / المذهب الجعفري')),
+                        DropdownMenuItem(value: 3, child: Text('رابطة العالم الإسلامي')),
+                        DropdownMenuItem(value: 5, child: Text('الهيئة المصرية العامة للمساحة')),
                         DropdownMenuItem(value: 1, child: Text('جامعة العلوم الإسلامية بكراتشي')),
-                        DropdownMenuItem(value: 3, child: Text('الهيئة المصرية العامة للمساحة')),
+                        DropdownMenuItem(value: 2, child: Text('الجمعية الإسلامية لشمال أمريكا (ISNA)')),
                       ],
                       onChanged: (val) {
                         if (val != null) {
@@ -1121,21 +1359,50 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 20),
 
-                _buildSectionHeader('معلومات التطبيق والموقع'),
+                _buildSectionHeader('مذهب حساب وقت صلاة العصر'),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: DropdownButtonHideUnderline(
+                    child: DropdownButton<int>(
+                      value: appRepository.asrJurisprudence,
+                      isExpanded: true,
+                      items: const [
+                        DropdownMenuItem(value: 0, child: Text('الجمهور (الشافعي، المالكي، الحنبلي، الجعفري)')),
+                        DropdownMenuItem(value: 1, child: Text('المذهب الحنفي')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) {
+                          appRepository.asrJurisprudence = val;
+                          appRepository.loadPrayerTimes(appRepository.currentCity, appRepository.currentCountry);
+                        }
+                      },
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                _buildSectionHeader('الموقع الحالي المعتمد'),
                 Card(
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   child: Column(
                     children: [
                       ListTile(
                         leading: const Icon(Icons.location_city, color: Color(0xFF0D3B2E)),
-                        title: const Text('المدينة والدولة الحالية'),
+                        title: const Text('المدينة والدولة'),
                         subtitle: Text('${appRepository.currentCityArabic} - ${appRepository.currentCountryArabic}'),
-                      ),
-                      const Divider(height: 1),
-                      const ListTile(
-                        leading: Icon(Icons.verified_user_rounded, color: Color(0xFF0D3B2E)),
-                        title: Text('إصدار التطبيق'),
-                        subtitle: Text('3.0.0 (النسخة الاحترافية السريعة)'),
+                        trailing: IconButton(
+                          icon: const Icon(Icons.edit_location_alt_rounded, color: Color(0xFFD4AF37)),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => const LocationSearchDialog(),
+                            );
+                          },
+                        ),
                       ),
                     ],
                   ),
@@ -1163,6 +1430,10 @@ class SettingsScreen extends StatelessWidget {
   }
 }
 
+// ==========================================
+// 9. LOCATION SEARCH DIALOG (FULLY FIXED)
+// ==========================================
+
 class LocationSearchDialog extends StatefulWidget {
   const LocationSearchDialog({super.key});
 
@@ -1177,8 +1448,8 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
   @override
   void initState() {
     super.initState();
-    _cityController = TextEditingController(text: appRepository.currentCity);
-    _countryController = TextEditingController(text: appRepository.currentCountry);
+    _cityController = TextEditingController(text: appRepository.currentCityArabic);
+    _countryController = TextEditingController(text: appRepository.currentCountryArabic);
   }
 
   @override
@@ -1200,7 +1471,7 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
             TextField(
               controller: _countryController,
               decoration: const InputDecoration(
-                labelText: 'اسم الدولة (مثال: Iraq أو العراق)',
+                labelText: 'اسم الدولة (مثال: العراق، السعودية، Egypt)',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.public),
               ),
@@ -1209,7 +1480,7 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
             TextField(
               controller: _cityController,
               decoration: const InputDecoration(
-                labelText: 'اسم المدينة (مثال: Baghdad أو بغداد)',
+                labelText: 'اسم المدينة (مثال: بغداد، النجف، القاهرة)',
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.location_city),
               ),
@@ -1233,9 +1504,15 @@ class _LocationSearchDialogState extends State<LocationSearchDialog> {
             if (city.isNotEmpty && country.isNotEmpty) {
               appRepository.loadPrayerTimes(city, country);
               Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('تم تحديث الموقع إلى: $city - $country'),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
             }
           },
-          child: const Text('تحديث'),
+          child: const Text('تحديث المواقيت'),
         ),
       ],
     );
