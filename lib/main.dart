@@ -173,8 +173,6 @@ class ThikrCategory {
 // ==========================================
 
 class AudioService {
-  static final AudioPlayer _player = AudioPlayer();
-
   static Future<void> playClickSound() async {
     try {
       SystemSound.play(SystemSoundType.click);
@@ -278,9 +276,10 @@ class AppRepository extends ChangeNotifier {
   }
 
   void _fallbackToLocalAdhan() {
-    final coordinates = adhan_lib.Coordinates(33.3152, 44.3661); // بغداد افتراضياً
+    final coordinates = adhan_lib.Coordinates(33.3152, 44.3661);
     final params = adhan_lib.CalculationMethod.muslim_world_league.getParameters();
-    final times = adhan_lib.PrayerTimes.today(coordinates, params);
+    final dateComponents = adhan_lib.DateComponents.from(DateTime.now());
+    final times = adhan_lib.PrayerTimes(coordinates, dateComponents, params);
     prayerTimes = PrayerTimesData.fromAdhanLib(times);
   }
 
@@ -601,7 +600,7 @@ class PrayerTimesScreen extends StatelessWidget {
 }
 
 // ==========================================
-// 8. HIGH-PERFORMANCE INTERACTIVE MASBAHA
+// 8. INTERACTIVE MASBAHA SCREEN
 // ==========================================
 
 class AthkarScreen extends StatelessWidget {
@@ -962,6 +961,7 @@ class ThikrDetailScreen extends StatelessWidget {
 
   const ThikrDetailScreen({Key? key, required this.category}) : super(key: key);
 
+  @style
   @override
   Widget build(BuildContext context) {
     return Scaffold(
