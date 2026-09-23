@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:intl/intl.dart' hide TextDirection;
 import 'package:adhan/adhan.dart' as adhan_lib;
 
 // ==========================================
@@ -347,7 +346,7 @@ void main() {
 }
 
 class IslamicPrayerAthkarApp extends StatelessWidget {
-  const IslamicPrayerAthkarApp({Key? key}) : super(key: key);
+  const IslamicPrayerAthkarApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -395,7 +394,7 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
 // ==========================================
 
 class MainNavigationScreen extends StatefulWidget {
-  const MainNavigationScreen({Key? key}) : super(key: key);
+  const MainNavigationScreen({super.key});
 
   @override
   State<MainNavigationScreen> createState() => _MainNavigationScreenState();
@@ -450,7 +449,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
 // ==========================================
 
 class PrayerTimesScreen extends StatelessWidget {
-  const PrayerTimesScreen({Key? key}) : super(key: key);
+  const PrayerTimesScreen({super.key});
 
   void _showLocationDialog(BuildContext context) {
     showDialog(
@@ -611,7 +610,7 @@ class PrayerTimesScreen extends StatelessWidget {
 // ==========================================
 
 class AthkarScreen extends StatelessWidget {
-  const AthkarScreen({Key? key}) : super(key: key);
+  const AthkarScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -790,7 +789,7 @@ class AthkarScreen extends StatelessWidget {
 }
 
 class MasbahaDetailScreen extends StatefulWidget {
-  const MasbahaDetailScreen({Key? key}) : super(key: key);
+  const MasbahaDetailScreen({super.key});
 
   @override
   State<MasbahaDetailScreen> createState() => _MasbahaDetailScreenState();
@@ -966,7 +965,7 @@ class _MasbahaDetailScreenState extends State<MasbahaDetailScreen> with SingleTi
 class ThikrDetailScreen extends StatelessWidget {
   final ThikrCategory category;
 
-  const ThikrDetailScreen({Key? key, required this.category}) : super(key: key);
+  const ThikrDetailScreen({super.key, required this.category});
 
   @override
   Widget build(BuildContext context) {
@@ -1079,8 +1078,9 @@ class ThikrDetailScreen extends StatelessWidget {
 }
 
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({Key? key}) : super(key: key);
+  const SettingsScreen({super.key});
 
+  @style
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1165,7 +1165,7 @@ class SettingsScreen extends StatelessWidget {
 }
 
 class LocationSearchDialog extends StatefulWidget {
-  const LocationSearchDialog({Key? key}) : super(key: key);
+  const LocationSearchDialog({super.key});
 
   @override
   State<LocationSearchDialog> createState() => _LocationSearchDialogState();
