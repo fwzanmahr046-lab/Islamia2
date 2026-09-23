@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    name: Build Production APK & AAB
+    name: Build Production Release APK
     runs-on: ubuntu-latest
 
     steps:
@@ -36,20 +36,11 @@ jobs:
       - name: Generate Android Project Structure
         run: flutter create . --platforms=android --org com.example.islamicapp
 
-      - name: Build Debug APK File
-        run: flutter build apk --debug
-
-      - name: Build Android App Bundle (AAB)
-        run: flutter build appbundle --debug
+      - name: Build Release APK
+        run: flutter build apk --release
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: IslamicApp-Debug-APK
-          path: build/app/outputs/flutter-apk/app-debug.apk
-
-      - name: Upload AAB Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: IslamicApp-Debug-AAB
-          path: build/app/outputs/bundle/debug/app-debug.aab
+          name: IslamicApp-Release-APK
+          path: build/app/outputs/flutter-apk/app-release.apk
