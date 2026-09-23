@@ -4,7 +4,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:intl/intl.dart' hide TextDirection;
 import 'package:adhan/adhan.dart' as adhan_lib;
-import 'package:audioplayers/audioplayers.dart';
 
 // ==========================================
 // 1. ARABIC TRANSLATION & LOCALE UTILS
@@ -58,10 +57,18 @@ class ArabicTranslationService {
 
   static String formatArabicDate(DateTime date) {
     final months = [
-      'يناير / كانون الثاني', 'فبراير / شباط', 'مارس / آذار',
-      'أبريل / نيسان', 'مايو / أيار', 'يونيو / حزيران',
-      'يوليو / تموز', 'أغسطس / آب', 'سبتمبر / أيلول',
-      'أكتوبر / تشرين الأول', 'نوفمبر / تشرين الثاني', 'ديسمبر / كانون الأول'
+      'يناير / كانون الثاني',
+      'فبراير / شباط',
+      'مارس / آذار',
+      'أبريل / نيسان',
+      'مايو / أيار',
+      'يونيو / حزيران',
+      'يوليو / تموز',
+      'أغسطس / آب',
+      'سبتمبر / أيلول',
+      'أكتوبر / تشرين الأول',
+      'نوفمبر / تشرين الثاني',
+      'ديسمبر / كانون الأول'
     ];
     return '${date.day} ${months[date.month - 1]} ${date.year} م';
   }
@@ -418,7 +425,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
         },
         backgroundColor: Colors.white,
         elevation: 10,
-        indicatorColor: const Color(0xFFD4AF37).withOpacity(0.3),
+        indicatorColor: const Color(0x4D1B5E4A),
         destinations: const [
           NavigationDestination(
             icon: Icon(Icons.access_time_filled_rounded),
@@ -504,11 +511,11 @@ class PrayerTimesScreen extends StatelessWidget {
                           end: Alignment.bottomLeft,
                         ),
                         borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
+                        boxShadow: const [
                           BoxShadow(
-                            color: const Color(0xFF0D3B2E).withOpacity(0.3),
+                            color: Color(0x4D0D3B2E),
                             blurRadius: 16,
-                            offset: const Offset(0, 8),
+                            offset: Offset(0, 8),
                           ),
                         ],
                       ),
@@ -560,11 +567,11 @@ class PrayerTimesScreen extends StatelessWidget {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(18),
-        boxShadow: [
+        boxShadow: const [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Color(0x0A000000),
             blurRadius: 8,
-            offset: const Offset(0, 4),
+            offset: Offset(0, 4),
           ),
         ],
       ),
@@ -572,8 +579,8 @@ class PrayerTimesScreen extends StatelessWidget {
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
         leading: Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: const Color(0xFF0D3B2E).withOpacity(0.1),
+          decoration: const BoxDecoration(
+            color: Color(0x1A0D3B2E),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, color: const Color(0xFF0D3B2E)),
@@ -635,11 +642,11 @@ class AthkarScreen extends StatelessWidget {
                     end: Alignment.bottomLeft,
                   ),
                   borderRadius: BorderRadius.circular(22),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
-                      color: const Color(0xFF0D3B2E).withOpacity(0.3),
+                      color: Color(0x4D0D3B2E),
                       blurRadius: 10,
-                      offset: const Offset(0, 5),
+                      offset: Offset(0, 5),
                     ),
                   ],
                 ),
@@ -647,8 +654,8 @@ class AthkarScreen extends StatelessWidget {
                   children: [
                     Container(
                       padding: const EdgeInsets.all(14),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFD4AF37).withOpacity(0.2),
+                      decoration: const BoxDecoration(
+                        color: Color(0x33D4AF37),
                         shape: BoxShape.circle,
                       ),
                       child: const Icon(
@@ -719,11 +726,11 @@ class AthkarScreen extends StatelessWidget {
                   decoration: BoxDecoration(
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Color(0x0A000000),
                         blurRadius: 8,
-                        offset: const Offset(0, 4),
+                        offset: Offset(0, 4),
                       ),
                     ],
                   ),
@@ -832,9 +839,9 @@ class _MasbahaDetailScreenState extends State<MasbahaDetailScreen> with SingleTi
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
+                  boxShadow: const [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.05),
+                      color: Color(0x0D000000),
                       blurRadius: 8,
                     ),
                   ],
@@ -885,11 +892,11 @@ class _MasbahaDetailScreenState extends State<MasbahaDetailScreen> with SingleTi
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        boxShadow: [
+                        boxShadow: const [
                           BoxShadow(
-                            color: const Color(0xFF0D3B2E).withOpacity(0.35),
+                            color: Color(0x590D3B2E),
                             blurRadius: 25,
-                            offset: const Offset(0, 10),
+                            offset: Offset(0, 10),
                           ),
                         ],
                         border: Border.all(
@@ -961,7 +968,6 @@ class ThikrDetailScreen extends StatelessWidget {
 
   const ThikrDetailScreen({Key? key, required this.category}) : super(key: key);
 
-  @style
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -984,17 +990,17 @@ class ThikrDetailScreen extends StatelessWidget {
                   margin: const EdgeInsets.only(bottom: 16),
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: isCompleted ? const Color(0xFF0D3B2E).withOpacity(0.1) : Colors.white,
+                    color: isCompleted ? const Color(0x1A0D3B2E) : Colors.white,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: isCompleted ? const Color(0xFF0D3B2E) : Colors.transparent,
                       width: 2,
                     ),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
-                        color: Colors.black.withOpacity(0.04),
+                        color: Color(0x0A000000),
                         blurRadius: 8,
-                        offset: const Offset(0, 3),
+                        offset: Offset(0, 3),
                       ),
                     ],
                   ),
@@ -1036,11 +1042,11 @@ class ThikrDetailScreen extends StatelessWidget {
                                     ? const Color(0xFF0D3B2E)
                                     : const Color(0xFFD4AF37),
                                 shape: BoxShape.circle,
-                                boxShadow: [
+                                boxShadow: const [
                                   BoxShadow(
-                                    color: const Color(0xFF0D3B2E).withOpacity(0.2),
+                                    color: Color(0x330D3B2E),
                                     blurRadius: 8,
-                                    offset: const Offset(0, 4),
+                                    offset: Offset(0, 4),
                                   ),
                                 ],
                               ),
