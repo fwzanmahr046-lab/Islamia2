@@ -79,7 +79,8 @@ class LocationService {
     'turkey': 'تركيا',
   };
 
-  static const Map<String, adhan_lib.Coordinates> _cityCoordinates = {
+  // ✅ تم تحويلها إلى static final لحل خطأ non_constant_map_value نهائياً
+  static final Map<String, adhan_lib.Coordinates> _cityCoordinates = {
     'baghdad': adhan_lib.Coordinates(33.3152, 44.3661),
     'najaf': adhan_lib.Coordinates(32.0259, 44.3463),
     'karbala': adhan_lib.Coordinates(32.6160, 44.0249),
@@ -113,7 +114,7 @@ class LocationService {
 
   static adhan_lib.Coordinates getCoordinates(String city) {
     final clean = toEnglish(city).toLowerCase();
-    return _cityCoordinates[clean] ?? const adhan_lib.Coordinates(33.3152, 44.3661);
+    return _cityCoordinates[clean] ?? adhan_lib.Coordinates(33.3152, 44.3661);
   }
 
   static String formatArabicDate(DateTime date) {
@@ -611,7 +612,6 @@ class IslamicPrayerAthkarApp extends StatelessWidget {
         );
       },
       home: const MainNavigationScreen(),
-      // ⚠️ تم إزالة const من بداية الخريطة هنا بأسلوب نهائي ومؤكد لمنع خطأ non_constant_map_value
       routes: {
         '/home': (context) => const MainNavigationScreen(),
       },
